@@ -234,7 +234,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
-  MX_ADC1_Init(); 												//https://istarik.ru/blog/stm32/113.html
+  MX_ADC1_Init();
   MX_ADC2_Init();
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
