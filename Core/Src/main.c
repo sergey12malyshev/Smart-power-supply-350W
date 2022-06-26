@@ -101,6 +101,7 @@ VOLT-show out voltage 0.01V\r\n\
 CURR-show out current\r\n\
 ONPS-On Power switch\r\n\
 OFPS-Off Power switch\r\n\
+VIEW-voltage current power view\r\n\
 >";
 uint8_t symbol_term[]=">";
 
@@ -147,6 +148,7 @@ void off_ps (void){
 }	
 
 void calibr_zero_AD712 (void){
+		HAL_Delay (100); // delay t
 		HAL_ADC_Start(&hadc2);
 		HAL_ADC_PollForConversion(&hadc2,100);
 		uint16_t adc_2 = (uint32_t) HAL_ADC_GetValue(&hadc2);
@@ -201,7 +203,7 @@ void monitor (void){
 					HAL_UART_Transmit(&huart1,r_n,2,0xFFFF);
 					if (((input_mon_buff[0] == 'H')||(input_mon_buff[0] == 'h'))&&((input_mon_buff[1] == 'E')||(input_mon_buff[1] == 'e'))\
 						&&((input_mon_buff[2] == 'L')||(input_mon_buff[2] == 'l'))&&((input_mon_buff[3] == 'P')||(input_mon_buff[3] == 'p'))){ // enter HELP
-						HAL_UART_Transmit(&huart1,mon_comand,202,0xFFFF);
+						HAL_UART_Transmit(&huart1,mon_comand,236,0xFFFF);
 
 					
 					}else if (((input_mon_buff[0] == 'T')||(input_mon_buff[0] == 't'))&&((input_mon_buff[1] == 'E')||(input_mon_buff[1] == 'e'))\
@@ -234,6 +236,9 @@ void monitor (void){
 								HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);	
 								HAL_NVIC_SystemReset();
 					
+					}else if ((input_mon_buff[0] == 'V')&&(input_mon_buff[1] == 'I')&&(input_mon_buff[2] == 'E')&&(input_mon_buff[3] == 'W')){ // enter VIEW
+								HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);	
+								monitorTest = 4;
 					}else {
 								HAL_UART_Transmit(&huart1,error,7,0xFFFF); 
 								HAL_UART_Transmit(&huart1,symbol_term,1,0xFFFF);
@@ -259,9 +264,19 @@ void monitor_out_test(void){
 								break;
 		case 3:                    // out TEST
 								on_ps();
-								osDelay(400);
+								osDelay(900);
 								off_ps();
-								osDelay(400);
+								osDelay(900);
+								break;
+		case 4:                    // out GLOB_TEST - dopisat obrabotchic
+								sprintf(str,"%d.%d\t", voltage/100, voltage%100); // out Voltage
+								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+								sprintf(str,"%d.%d\t", current/1000,current%1000); // out Curent
+								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+								uint32_t power = voltage * current;
+								sprintf(str,"%d.%d\r\n", power/100000,(power/10000)%10); 
+								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+								osDelay(100);
 								break;
 								
 		default:	;
@@ -269,6 +284,7 @@ void monitor_out_test(void){
 }
 
 void Check_Task(void){
+	
 	if (HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_5)==0) state_now_power=TRUE;
 	else state_now_power = FALSE;
 	
