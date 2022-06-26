@@ -108,7 +108,7 @@ uint16_t current;
 uint8_t state_now_power; 
 uint8_t state_set_pwr;
 
-uint32_t task50msCnt = 0;
+uint32_t task10msCnt = 0;
 
 uint8_t str[50];
 /* USER CODE END PV */
@@ -342,15 +342,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		adc1_convertion();
-		adc2_convertion();
-		monitor();
-		Check_Task();
-		reset_WDT;
-		
-		HAL_Delay(10);
-	
-		
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -626,13 +617,16 @@ void StartMainTask(void *argument)
 {
   /* USER CODE BEGIN StartMainTask */
 	 TickType_t xLastWakeTime;
-   const TickType_t xFrequency = 10 / portTICK_PERIOD_MS;
+   const TickType_t xFrequency = 10 / portTICK_PERIOD_MS; // 10 ms period TASK
    xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
   {
+		task10msCnt++;
 		reset_WDT;
-		task50msCnt++;
+		adc1_convertion();
+		adc2_convertion();
+		
     vTaskDelayUntil(&xLastWakeTime, xFrequency);
     //osDelay(1);
   }
@@ -649,10 +643,16 @@ void StartMainTask(void *argument)
 void StartCheckTask(void *argument)
 {
   /* USER CODE BEGIN StartCheckTask */
+		TickType_t xLastWakeTime;
+		const TickType_t xFrequency = 10 / portTICK_PERIOD_MS; // 10 ms period TASK
+		xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		Check_Task();
+		reset_WDT;
+		
+    vTaskDelayUntil(&xLastWakeTime, xFrequency);
   }
   /* USER CODE END StartCheckTask */
 }
@@ -667,10 +667,14 @@ void StartCheckTask(void *argument)
 void StartMonitorTask(void *argument)
 {
   /* USER CODE BEGIN StartMonitorTask */
+		TickType_t xLastWakeTime;
+		const TickType_t xFrequency = 20 / portTICK_PERIOD_MS; // 20 ms period TASK
+		xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		monitor();
+    vTaskDelayUntil(&xLastWakeTime, xFrequency);
   }
   /* USER CODE END StartMonitorTask */
 }
