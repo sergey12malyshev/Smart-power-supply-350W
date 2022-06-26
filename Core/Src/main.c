@@ -172,7 +172,9 @@ void adc2_convertion(void){
 
 void monitor (void){
 	if(huart1.RxXferCount==0){                        
-		//HAL_UART_Transmit(&huart1,input_mon,4,0xFFFF); //Local echo
+#if 0
+		HAL_UART_Transmit(&huart1,input_mon,4,0xFFFF); //Local echo
+#endif
 			HAL_UART_Transmit(&huart1,r_n,2,0xFFFF);
 		  
 				if ((input_mon[0] == 'H')&&(input_mon[1] == 'E')&&(input_mon[2] == 'L')&&(input_mon[3] == 'P')){ // enter HELP
