@@ -100,7 +100,9 @@ TEST-Set LED\r\n\
 ADC1-show out voltage\r\n\
 ADC2-show out current\r\n\
 ONPS-On Power switch\r\n\
-OFPS-Off Power switch\r\n";
+OFPS-Off Power switch\r\n\
+>";
+uint8_t symbol_term[]=">";
 
 uint16_t zero_ad712;
 uint16_t voltage;
@@ -171,6 +173,10 @@ void adc2_convertion(void){
 	  HAL_ADC_Stop(&hadc2);
 }
 
+void clear_uart_buff(void){
+	
+		memset(input_mon_buff,0,sizeof(input_mon_buff));
+}
 
 void monitor (void){
 	
@@ -179,65 +185,75 @@ void monitor (void){
 #if 1
 		  HAL_UART_Transmit(&huart1,input_mon,1,0xFFFF); //Local echo
 #endif
-			  input_mon_buff[rec_len++]=input_mon[0];
-		    if (rec_len>3){
-					rec_len = 0;
-				//HAL_UART_Transmit(&huart1,input_mon_buff,4,0xFFFF);
+			if(input_mon[0] == 13){
 				HAL_UART_Transmit(&huart1,r_n,2,0xFFFF);
-				if (((input_mon_buff[0] == 'H')||(input_mon_buff[0] == 'h'))&&(input_mon_buff[1] == 'E')&&(input_mon_buff[2] == 'L')&&(input_mon_buff[3] == 'P')){ // enter HELP
-				HAL_UART_Transmit(&huart1,mon_comand,195,0xFFFF);
+				HAL_UART_Transmit(&huart1,symbol_term,2,0xFFFF);
+				rec_len =0;
+				clear_uart_buff();
+			}else{
+					input_mon_buff[rec_len++]=input_mon[0]; // load char do string
+					if (rec_len>3){
+						rec_len = 0;
+						
+					//HAL_UART_Transmit(&huart1,input_mon_buff,4,0xFFFF);
+					HAL_UART_Transmit(&huart1,r_n,2,0xFFFF);
+					if (((input_mon_buff[0] == 'H')||(input_mon_buff[0] == 'h'))&&(input_mon_buff[1] == 'E')&&(input_mon_buff[2] == 'L')&&(input_mon_buff[3] == 'P')){ // enter HELP
+						HAL_UART_Transmit(&huart1,mon_comand,196,0xFFFF);
 
+					
+					}else if ((input_mon_buff[0] == 'T')&&(input_mon[1] == 'E')&&(input_mon_buff[2] == 'S')&&(input_mon_buff[3] == 'T')){ // enter TEST
+								HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
+								on_ps();
+								HAL_Delay(400);
+								off_ps();
+								reset_WDT;
+								HAL_Delay(400);
+								reset_WDT;
 				
-			}else if ((input_mon_buff[0] == 'T')&&(input_mon[1] == 'E')&&(input_mon_buff[2] == 'S')&&(input_mon_buff[3] == 'T')){ // enter TEST
-				HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
-				on_ps();
-				HAL_Delay(400);
-				off_ps();
-				reset_WDT;
-				HAL_Delay(400);
-				reset_WDT;
-			
-			}else if ((input_mon_buff[0] == 'A')&&(input_mon_buff[1] == 'D')&&(input_mon_buff[2] == 'C')&&(input_mon_buff[3] == '1')){ // enter ADC1
-				for(int i=1; i<95; i++) {
-					adc1_convertion();
-					sprintf(str,"%d\r\n", voltage);
-					HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
-					reset_WDT;
-					HAL_Delay(150);	
+					}else if ((input_mon_buff[0] == 'A')&&(input_mon_buff[1] == 'D')&&(input_mon_buff[2] == 'C')&&(input_mon_buff[3] == '1')){ // enter ADC1
+								for(int i=1; i<95; i++) {
+								adc1_convertion();
+								sprintf(str,"%d\r\n", voltage);
+								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+								reset_WDT;
+								HAL_Delay(150);	
+								}
+					HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
+				
+					}else if ((input_mon_buff[0] == 'A')&&(input_mon[1] == 'D')&&(input_mon_buff[2] == 'C')&&(input_mon_buff[3] == '2')){ // enter ADC2
+								for(int i=1; i<95; i++) {
+								adc2_convertion();
+								sprintf(str,"%d\r\n", current);
+								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+								reset_WDT;
+								HAL_Delay(150);
+								}
+					HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
+
+				}else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'N')&&(input_mon_buff[2] == 'P')&&(input_mon_buff[3] == 'S')){ // enter ONPS
+					HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);		
+					on_ps();
+					
+				}else if ((input_mon_buff[0] == 'O')&&(input_mon[1] == 'F')&&(input_mon_buff[2] == 'P')&&(input_mon_buff[3] == 'S')){ // enter OFPS
+					HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);				
+					off_ps();
+				
+				}else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')&&(input_mon_buff[3] == 'W')){ // enter RSTW
+					HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);	
+					vTaskSuspendAll();				
+					while(1); 
+					
+				}else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')&&(input_mon_buff[3] == 'T')){ // enter RSTT
+					HAL_NVIC_SystemReset();
+					
+				}else {
+					HAL_UART_Transmit(&huart1,error,7,0xFFFF); 
+					HAL_UART_Transmit(&huart1,symbol_term,1,0xFFFF);
 				}
-				HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
-			
-			}else if ((input_mon_buff[0] == 'A')&&(input_mon[1] == 'D')&&(input_mon_buff[2] == 'C')&&(input_mon_buff[3] == '2')){ // enter ADC2
-				for(int i=1; i<95; i++) {
-					adc2_convertion();
-					sprintf(str,"%d\r\n", current);
-					HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
-					reset_WDT;
-					HAL_Delay(150);
-				}
-				HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
-
-			}else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'N')&&(input_mon_buff[2] == 'P')&&(input_mon_buff[3] == 'S')){ // enter ONPS
-				HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);		
-				on_ps();
-				
-			}else if ((input_mon_buff[0] == 'O')&&(input_mon[1] == 'F')&&(input_mon_buff[2] == 'P')&&(input_mon_buff[3] == 'S')){ // enter OFPS
-				HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);				
-				off_ps();
-			
-			}else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')&&(input_mon_buff[3] == 'W')){ // enter RSTW
-				HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);	
-				vTaskSuspendAll();				
-				while(1); 
-				
-			}else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')&&(input_mon_buff[3] == 'T')){ // enter RSTT
-				HAL_NVIC_SystemReset();
-				
-			}else HAL_UART_Transmit(&huart1,error,7,0xFFFF); 
-
-			memset(input_mon_buff,0,sizeof(input_mon_buff));
-			HAL_UART_Receive_IT(&huart1,(uint8_t*) input_mon,1);
-		}
+				clear_uart_buff();
+				HAL_UART_Receive_IT(&huart1,(uint8_t*) input_mon,1);
+		 }
+	  }
 	}
 }
 
@@ -288,15 +304,13 @@ int main(void)
 	
 	off_ps(); 
 	
-	memset(input_mon_buff,0,sizeof(input_mon_buff));
+	clear_uart_buff();
   HAL_UART_Receive_IT(&huart1,(uint8_t*) input_mon,1);
 	
-	HAL_Delay(1);
 	HAL_UART_Transmit(&huart1,hello_string,25,0xFFFF);
-	HAL_Delay(1);
 	HAL_UART_Transmit(&huart1,version,6,0xFFFF);
-	HAL_Delay(1);
 	HAL_UART_Transmit(&huart1,enter_help,12,0xFFFF);
+	HAL_UART_Transmit(&huart1,symbol_term,1,0xFFFF);
 	
 	calibr_zero_AD712();
 	
