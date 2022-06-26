@@ -113,6 +113,7 @@ uint8_t state_set_pwr;
 uint32_t task10msCnt = 0;
 
 uint8_t input_mon_buff[]="    ";
+uint8_t monitorTest = 0; // global flag TEST
 
 uint8_t str[50];
 /* USER CODE END PV */
@@ -190,6 +191,7 @@ void monitor (void){
 				HAL_UART_Transmit(&huart1,symbol_term,2,0xFFFF);
 				rec_len =0;
 				clear_uart_buff();
+				monitorTest =0;  //reset TEST
 			}else{
 					input_mon_buff[rec_len++]=input_mon[0]; // load char do string
 					if (rec_len>3){
@@ -197,7 +199,8 @@ void monitor (void){
 						
 					//HAL_UART_Transmit(&huart1,input_mon_buff,4,0xFFFF);
 					HAL_UART_Transmit(&huart1,r_n,2,0xFFFF);
-					if (((input_mon_buff[0] == 'H')||(input_mon_buff[0] == 'h'))&&(input_mon_buff[1] == 'E')&&(input_mon_buff[2] == 'L')&&(input_mon_buff[3] == 'P')){ // enter HELP
+					if (((input_mon_buff[0] == 'H')||(input_mon_buff[0] == 'h'))&&((input_mon_buff[1] == 'E')||(input_mon_buff[1] == 'e'))\
+						&&((input_mon_buff[2] == 'L')||(input_mon_buff[2] == 'l'))&&((input_mon_buff[3] == 'P')||(input_mon_buff[3] == 'p'))){ // enter HELP
 						HAL_UART_Transmit(&huart1,mon_comand,196,0xFFFF);
 
 					
@@ -211,14 +214,8 @@ void monitor (void){
 								reset_WDT;
 				
 					}else if ((input_mon_buff[0] == 'A')&&(input_mon_buff[1] == 'D')&&(input_mon_buff[2] == 'C')&&(input_mon_buff[3] == '1')){ // enter ADC1
-								for(int i=1; i<95; i++) {
-								adc1_convertion();
-								sprintf(str,"%d\r\n", voltage);
-								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
-								reset_WDT;
-								HAL_Delay(150);	
-								}
-					HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
+								monitorTest = 1;
+								HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
 				
 					}else if ((input_mon_buff[0] == 'A')&&(input_mon[1] == 'D')&&(input_mon_buff[2] == 'C')&&(input_mon_buff[3] == '2')){ // enter ADC2
 								for(int i=1; i<95; i++) {
@@ -254,6 +251,21 @@ void monitor (void){
 				HAL_UART_Receive_IT(&huart1,(uint8_t*) input_mon,1);
 		 }
 	  }
+	}
+}
+
+void monitor_out_test(void){
+	switch(monitorTest){
+		case 1: 
+								
+								adc1_convertion();
+								sprintf(str,"%d\r\n", voltage);
+								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+								reset_WDT;
+								HAL_Delay(150);	
+								break;
+		case 2: ;
+		default:	;
 	}
 }
 
@@ -698,6 +710,7 @@ void StartMonitorTask(void *argument)
   for(;;)
   {
 		monitor();
+		monitor_out_test();
     vTaskDelayUntil(&xLastWakeTime, xFrequency);
   }
   /* USER CODE END StartMonitorTask */
