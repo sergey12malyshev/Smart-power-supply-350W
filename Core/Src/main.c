@@ -97,8 +97,8 @@ HELP-See existing commands\r\n\
 RSTT-Restart\r\n\
 RSTW-restart using WDT\r\n\
 TEST-Set LED\r\n\
-ADC1-show out voltage\r\n\
-ADC2-show out current\r\n\
+VOLT-show out voltage 0.01V\r\n\
+CURR-show out current\r\n\
 ONPS-On Power switch\r\n\
 OFPS-Off Power switch\r\n\
 >";
@@ -154,12 +154,12 @@ void calibr_zero_AD712 (void){
 	  HAL_ADC_Stop(&hadc2);
 }
 
-void adc1_convertion(void){
+void adc1_convertion(void){  // voltage in 0.01 V
 
     HAL_ADC_Start(&hadc1);
 		HAL_ADC_PollForConversion(&hadc1,100);
 		uint16_t adc_1 = (uint32_t) HAL_ADC_GetValue(&hadc1);
-		voltage = (adc_1*33*107)/4096; //9,1K 910 OHM -> 11*3=33 (36)V MAX INPUT
+		voltage = (adc_1*33*107)/4096; //9,1K 910 OHM -> 11*3=33 (36)V MAX INPUT 
 	  HAL_ADC_Stop(&hadc1);
 }
 
@@ -186,7 +186,7 @@ void monitor (void){
 #if 1
 		  HAL_UART_Transmit(&huart1,input_mon,1,0xFFFF); //Local echo
 #endif
-			if(input_mon[0] == 13){
+			if(input_mon[0] == 13){ // enter key
 				HAL_UART_Transmit(&huart1,r_n,2,0xFFFF);
 				HAL_UART_Transmit(&huart1,symbol_term,2,0xFFFF);
 				rec_len =0;
@@ -201,52 +201,43 @@ void monitor (void){
 					HAL_UART_Transmit(&huart1,r_n,2,0xFFFF);
 					if (((input_mon_buff[0] == 'H')||(input_mon_buff[0] == 'h'))&&((input_mon_buff[1] == 'E')||(input_mon_buff[1] == 'e'))\
 						&&((input_mon_buff[2] == 'L')||(input_mon_buff[2] == 'l'))&&((input_mon_buff[3] == 'P')||(input_mon_buff[3] == 'p'))){ // enter HELP
-						HAL_UART_Transmit(&huart1,mon_comand,196,0xFFFF);
+						HAL_UART_Transmit(&huart1,mon_comand,202,0xFFFF);
 
 					
-					}else if ((input_mon_buff[0] == 'T')&&(input_mon[1] == 'E')&&(input_mon_buff[2] == 'S')&&(input_mon_buff[3] == 'T')){ // enter TEST
+					}else if (((input_mon_buff[0] == 'T')||(input_mon_buff[0] == 't'))&&((input_mon_buff[1] == 'E')||(input_mon_buff[1] == 'e'))\
+						&&((input_mon_buff[2] == 'S')||(input_mon_buff[2] == 's'))&&((input_mon_buff[3] == 'T')||(input_mon_buff[3] == 't'))){ // enter TEST
+								monitorTest = 3;		
 								HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
-								on_ps();
-								HAL_Delay(400);
-								off_ps();
-								reset_WDT;
-								HAL_Delay(400);
-								reset_WDT;
 				
-					}else if ((input_mon_buff[0] == 'A')&&(input_mon_buff[1] == 'D')&&(input_mon_buff[2] == 'C')&&(input_mon_buff[3] == '1')){ // enter ADC1
+					}else if ((input_mon_buff[0] == 'V')&&(input_mon_buff[1] == 'O')&&(input_mon_buff[2] == 'L')&&(input_mon_buff[3] == 'T')){ // enter VOLT
 								monitorTest = 1;
 								HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
 				
-					}else if ((input_mon_buff[0] == 'A')&&(input_mon[1] == 'D')&&(input_mon_buff[2] == 'C')&&(input_mon_buff[3] == '2')){ // enter ADC2
-								for(int i=1; i<95; i++) {
-								adc2_convertion();
-								sprintf(str,"%d\r\n", current);
-								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
-								reset_WDT;
-								HAL_Delay(150);
-								}
-					HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
+					}else if ((input_mon_buff[0] == 'C')&&(input_mon_buff[1] == 'U')&&(input_mon_buff[2] == 'R')&&(input_mon_buff[3] == 'R')){ // enter CURR
+								monitorTest = 2;
+								HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);
 
-				}else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'N')&&(input_mon_buff[2] == 'P')&&(input_mon_buff[3] == 'S')){ // enter ONPS
-					HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);		
-					on_ps();
+					}else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'N')&&(input_mon_buff[2] == 'P')&&(input_mon_buff[3] == 'S')){ // enter ONPS
+								HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);		
+								on_ps();
 					
-				}else if ((input_mon_buff[0] == 'O')&&(input_mon[1] == 'F')&&(input_mon_buff[2] == 'P')&&(input_mon_buff[3] == 'S')){ // enter OFPS
-					HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);				
-					off_ps();
+					}else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'F')&&(input_mon_buff[2] == 'P')&&(input_mon_buff[3] == 'S')){ // enter OFPS
+								HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);				
+								off_ps();
 				
-				}else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')&&(input_mon_buff[3] == 'W')){ // enter RSTW
-					HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);	
-					vTaskSuspendAll();				
-					while(1); 
+					}else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')&&(input_mon_buff[3] == 'W')){ // enter RSTW
+								HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);	
+								vTaskSuspendAll();				
+								while(1); 
 					
-				}else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')&&(input_mon_buff[3] == 'T')){ // enter RSTT
-					HAL_NVIC_SystemReset();
+					}else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')&&(input_mon_buff[3] == 'T')){ // enter RSTT
+								HAL_UART_Transmit(&huart1,mon_OK,4,0xFFFF);	
+								HAL_NVIC_SystemReset();
 					
-				}else {
-					HAL_UART_Transmit(&huart1,error,7,0xFFFF); 
-					HAL_UART_Transmit(&huart1,symbol_term,1,0xFFFF);
-				}
+					}else {
+								HAL_UART_Transmit(&huart1,error,7,0xFFFF); 
+								HAL_UART_Transmit(&huart1,symbol_term,1,0xFFFF);
+					}
 				clear_uart_buff();
 				HAL_UART_Receive_IT(&huart1,(uint8_t*) input_mon,1);
 		 }
@@ -257,14 +248,22 @@ void monitor (void){
 void monitor_out_test(void){
 	switch(monitorTest){
 		case 1: 
-								
-								adc1_convertion();
-								sprintf(str,"%d\r\n", voltage);
+								sprintf(str,"%d\r\n", voltage); // out Voltage
 								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
-								reset_WDT;
-								HAL_Delay(150);	
+								osDelay(100);	
 								break;
-		case 2: ;
+		case 2: 		
+								sprintf(str,"%d\r\n", current); // out Curent
+								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+								osDelay(100);
+								break;
+		case 3:                    // out TEST
+								on_ps();
+								osDelay(400);
+								off_ps();
+								osDelay(400);
+								break;
+								
 		default:	;
 	}
 }
