@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>	
 #include <stdbool.h>
 
@@ -14,6 +15,8 @@ extern UART_HandleTypeDef huart1;
 extern uint16_t zero_ad712;
 extern uint16_t voltage;
 extern uint16_t current;
+
+enum COMAND {HELP = 0, RSTT, RSTW, TEST, VOLT, CURR, ONPS, OFPS, VIEW};
 
 uint8_t hello_string[]= "Controller Power Supply\r\n";
 uint8_t enter_help[]= "Enter HELP\r\n";
@@ -87,35 +90,47 @@ static void sendUART_error(void)
   HAL_UART_Transmit(&huart1, error, 7, uartBlock_ms); 
 }
 
+static void convertToUppercase(void)
+{
+  static uint8_t *copy_ptr;
+       
+  copy_ptr = input_mon_buff;
+  while (*copy_ptr != 0)
+  { 
+    *copy_ptr = toupper(*copy_ptr);
+    copy_ptr++;
+  }
+}
 
 static void monitor(void)
 {
   static uint8_t rec_len = 0;
+  const uint8_t enter = 13;
 
   if((huart1.RxXferCount==0)&&(HAL_UART_Receive_IT (&huart1, input_mon, 1) != HAL_BUSY))
   {                        
 #if 1
     HAL_UART_Transmit(&huart1, input_mon, 1, uartBlock_ms); //Local echo
 #endif
-	if(input_mon[0] == 13)
+	if(input_mon[0] == enter)
     { // enter key
+
+      convertToUppercase();
       sendUART_r_n();
-		if (((input_mon_buff[0] == 'H')||(input_mon_buff[0] == 'h'))&&((input_mon_buff[1] == 'E')||(input_mon_buff[1] == 'e'))\
-		&&((input_mon_buff[2] == 'L')||(input_mon_buff[2] == 'l'))&&((input_mon_buff[3] == 'P')||(input_mon_buff[3] == 'p')))
+	  if ((input_mon_buff[0] == 'H')&&(input_mon_buff[1] == 'E')&&(input_mon_buff[2] == 'L')&&(input_mon_buff[3] == 'P'))
         { // enter HELP
 		  HAL_UART_Transmit(&huart1, mon_comand, strlen((char *)mon_comand), uartBlock_ms);
         }
-        else if (((input_mon_buff[0] == 'T')||(input_mon_buff[0] == 't'))&&((input_mon_buff[1] == 'E')||(input_mon_buff[1] == 'e'))\
-		  &&((input_mon_buff[2] == 'S')||(input_mon_buff[2] == 's'))&&((input_mon_buff[3] == 'T')||(input_mon_buff[3] == 't'))){ // enter TEST
-		  monitorTest = 3;		
+        else if ((input_mon_buff[0] == 'T')&&(input_mon_buff[1] == 'E')&&(input_mon_buff[2] == 'S')&&(input_mon_buff[3] == 'T')){ // enter TEST
+		  monitorTest = TEST;		
 		  sendUART_OK();
 		}
         else if ((input_mon_buff[0] == 'V')&&(input_mon_buff[1] == 'O')&&(input_mon_buff[2] == 'L')&&(input_mon_buff[3] == 'T')){ // enter VOLT
-		  monitorTest = 1;
+		  monitorTest = VOLT;
 	      sendUART_OK();
 		}
         else if ((input_mon_buff[0] == 'C')&&(input_mon_buff[1] == 'U')&&(input_mon_buff[2] == 'R')&&(input_mon_buff[3] == 'R')){ // enter CURR
-		  monitorTest = 2;
+		  monitorTest = CURR;
 		  sendUART_OK();
         }
         else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'N')&&(input_mon_buff[2] == 'P')&&(input_mon_buff[3] == 'S')){ // enter ONPS
@@ -137,7 +152,7 @@ static void monitor(void)
 		}
         else if ((input_mon_buff[0] == 'V')&&(input_mon_buff[1] == 'I')&&(input_mon_buff[2] == 'E')&&(input_mon_buff[3] == 'W')){ // enter VIEW
 		  sendUART_OK();	
-		  monitorTest = 4;
+		  monitorTest = VIEW;
 		}
         else
         {
@@ -174,23 +189,23 @@ static void monitor_out_test(void)
 
 	switch(monitorTest)
     {
-		case 1: 
+		case VOLT: 
 		  sprintf((char *)str,"%d\r\n", voltage); // out Voltage
 			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			osDelay(100);	
 			break;
-		case 2: 		
+		case CURR: 		
 			sprintf((char *)str,"%d\r\n", current); // out Curent
 			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			osDelay(100);
 			break;
-		case 3:                    // out TEST
+		case TEST:                    // out TEST
 			on_ps();
 			osDelay(900);
 			off_ps();
 			osDelay(900);
 			break;
-		case 4:                    // out GLOB_TEST - dopisat obrabotchic
+		case VIEW:                    // out GLOB_TEST - dopisat obrabotchic
 			sprintf((char *)str,"%d.%d\t", voltage/100, voltage%100); // out Voltage
 			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			sprintf((char *)str,"%d.%d\t", current/1000,current%1000); // out Curent
