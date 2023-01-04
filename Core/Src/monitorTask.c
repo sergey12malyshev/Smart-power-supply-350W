@@ -10,11 +10,7 @@
 #include "hardware.h"
 
 
-/*
-* проверка равенства строковых констант
-* возвращает FALSE при неравенстве, !FALSE при равенстве
-*/
-#define	Mon_IsStrEqu(ptr, cmd) (!strcmp(ptr, cmd))
+#define	mon_strcmp(ptr, cmd) (!strcmp(ptr, cmd))
 
 extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart1;
@@ -25,14 +21,15 @@ extern uint16_t current;
 
 enum COMAND {HELP = 0, RST, R, TEST, VOLTAGE, CURRENT, ONPS, OFF, POWER};
 
-uint8_t hello_string[]= "Controller Power Supply\r\n";
-uint8_t enter_help[]= "Enter HELP\r\n";
-uint8_t version[]="v0.1\r\n";
-uint8_t r_n[]="\r\n";
-uint8_t error[]="ERROR\r\n";
-uint8_t WARNING[]="WARNING:Power switch faulty!\r\n";
-uint8_t mon_OK[]="OK\r\n";
-uint8_t mon_comand[]="Enter monitor comman:\r\n\
+static uint8_t hello_string[]= "Controller Power Supply\r\n";
+static uint8_t enter_help[]= "Enter HELP\r\n";
+static uint8_t version[]="v0.1\r\n";
+static uint8_t r_n[]="\r\n";
+static uint8_t error[]="ERROR\r\n";
+static uint8_t WARNING[]="WARNING:Power switch faulty!\r\n";
+static uint8_t mon_OK[]="OK\r\n";
+static uint8_t backspace_str[] = " \b";
+static uint8_t mon_comand[]="Enter monitor comman:\r\n\
 HELP-see existing commands\r\n\
 RST-restart\r\n\
 R-restart using WDT\r\n\
@@ -43,7 +40,7 @@ ON-On Power switch\r\n\
 OFF-Off Power switch\r\n\
 POWER-voltage current power view\r\n\
 >";
-uint8_t symbol_term[]=">";
+static uint8_t symbol_term[]=">";
 
 uint8_t input_mon[1]={0};
 const uint8_t sizeBuff = 9;
@@ -83,6 +80,11 @@ void sendUART_hello(void)
   sendUART_symbolTerm();
 }
 
+void sendUART_help(void)
+{
+  HAL_UART_Transmit(&huart1, mon_comand, strlen((char *)mon_comand), uartBlock_ms);
+}
+
 static void sendUART_OK(void)
 {
   HAL_UART_Transmit(&huart1, mon_OK, 4, uartBlock_ms); 
@@ -96,6 +98,11 @@ static void sendUART_r_n(void)
 static void sendUART_error(void)
 {
   HAL_UART_Transmit(&huart1, error, 7, uartBlock_ms); 
+}
+
+static void sendBackspaceStr(void)
+{
+  HAL_UART_Transmit(&huart1, backspace_str, 2, uartBlock_ms); 
 }
 
 static void convertToUppercase(void)
@@ -114,6 +121,7 @@ static void monitor(void)
 {
   static uint8_t rec_len = 0;
   const uint8_t enter = 13;
+  const uint8_t Backspace = 0x08;
 
   if((huart1.RxXferCount==0)&&(HAL_UART_Receive_IT (&huart1, input_mon, 1) != HAL_BUSY))
   {                        
@@ -121,23 +129,22 @@ static void monitor(void)
     HAL_UART_Transmit(&huart1, input_mon, 1, uartBlock_ms); //Local echo
 #endif
 	if(input_mon[0] == enter)
-    { // enter key
-
+    { 
       convertToUppercase();
       sendUART_r_n();
-	  if ((input_mon_buff[0] == 'H')&&(input_mon_buff[1] == 'E')&&(input_mon_buff[2] == 'L')&&(input_mon_buff[3] == 'P'))
-        { // enter HELP
-		  HAL_UART_Transmit(&huart1, mon_comand, strlen((char *)mon_comand), uartBlock_ms);
+	  if ((input_mon_buff[0] == 'H')&&(input_mon_buff[1] == 'E')&&(input_mon_buff[2] == 'L')&&(input_mon_buff[3] == 'P')) // enter HELP
+        { 
+          sendUART_help();
         }
         else if ((input_mon_buff[0] == 'T')&&(input_mon_buff[1] == 'E')&&(input_mon_buff[2] == 'S')&&(input_mon_buff[3] == 'T')){ // enter TEST
 		  monitorTest = TEST;		
 		  sendUART_OK();
 		}
-        else if (Mon_IsStrEqu(input_mon_buff, (void*)"VOLTAGE")){
+        else if (mon_strcmp(input_mon_buff, (void*)"VOLTAGE")){
 		  monitorTest = VOLTAGE;
 	      sendUART_OK();
 		}
-        else if (Mon_IsStrEqu(input_mon_buff, "CURRENT")){ 
+        else if (mon_strcmp(input_mon_buff, "CURRENT")){ 
 		  monitorTest = CURRENT;
 		  sendUART_OK();
         }
@@ -145,7 +152,7 @@ static void monitor(void)
 		  sendUART_OK();		
 		  on_ps();
 		}
-        else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'F')&&(input_mon_buff[2] == 'F')){ // enter OFPS
+        else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'F')&&(input_mon_buff[2] == 'F')){ // enter OFF
 		  sendUART_OK();				
 		  off_ps();
 		}
@@ -154,11 +161,11 @@ static void monitor(void)
 		  vTaskSuspendAll();				
 		  while(1); 			
 		}
-        else if ((input_mon_buff[0] == 'R')){ // enter R
+        else if ((input_mon_buff[0] == 'R')){ 
 		  sendUART_OK();	
 		  HAL_NVIC_SystemReset();
 		}
-        else if (Mon_IsStrEqu(input_mon_buff, "POWER")){ // enter POWER
+        else if (mon_strcmp(input_mon_buff, "POWER")){ 
 		  sendUART_OK();	
 		  monitorTest = POWER;
 		}
@@ -183,10 +190,22 @@ static void monitor(void)
 	}
     else
     {
-      if (rec_len <= sizeBuff)
+      if (input_mon[0]== Backspace)
       {
-        input_mon_buff[rec_len++]=input_mon[0]; // load char do string
-      }  
+        if (rec_len != 0)
+        {
+          input_mon_buff[rec_len - 1] = 0;
+          rec_len--;
+          sendBackspaceStr();
+        }
+      }
+      else
+      {
+        if (rec_len <= sizeBuff)
+        {
+          input_mon_buff[rec_len++]=input_mon[0]; // load char do string
+        } 
+      }
 	}
   }
 }
@@ -198,25 +217,25 @@ static void monitor_out_test(void)
 	switch(monitorTest)
     {
 		case VOLTAGE: 
-		  sprintf((char *)str,"%d\r\n", voltage); // out Voltage
+		  sprintf((char *)str,"%d\r\n", voltage); 
 			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			osDelay(100);	
 			break;
 		case CURRENT: 		
-			sprintf((char *)str,"%d\r\n", current); // out Curent
+			sprintf((char *)str,"%d\r\n", current); 
 			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			osDelay(100);
 			break;
-		case TEST:                    // out TEST
+		case TEST:                   
 			on_ps();
 			osDelay(900);
 			off_ps();
 			osDelay(900);
 			break;
-		case POWER:                    // out GLOB_TEST - dopisat obrabotchic
-			sprintf((char *)str,"%d.%d\t", voltage/100, voltage%100); // out Voltage
+		case POWER:                   
+			sprintf((char *)str,"%d.%d\t", voltage/100, voltage%100); 
 			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
-			sprintf((char *)str,"%d.%d\t", current/1000,current%1000); // out Curent
+			sprintf((char *)str,"%d.%d\t", current/1000, current%1000); 
 			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			power = voltage * current;
 			sprintf((char *)str,"%d.%d\r\n", power/100000,(power/10000)%10); 
