@@ -530,6 +530,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\monitorTask.c</FilePath>
             </File>
+            <File>
+              <FileName>Hardware.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\Hardware.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

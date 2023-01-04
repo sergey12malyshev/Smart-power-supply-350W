@@ -14,6 +14,7 @@ SET CPU_CLOCK=0x007A1200
 "C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "proba\stm32f1xx_hal_msp.__i"
 "C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "proba\stm32f1xx_hal_timebase_tim.__i"
 "C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "proba\monitortask.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "proba\hardware.__i"
 "C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "proba\stm32f1xx_hal_gpio_ex.__i"
 "C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "proba\stm32f1xx_hal_adc.__i"
 "C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "proba\stm32f1xx_hal_adc_ex.__i"
