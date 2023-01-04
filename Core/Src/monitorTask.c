@@ -34,16 +34,19 @@ OFPS-Off Power switch\r\n\
 VIEW-voltage current power view\r\n\
 >";
 uint8_t symbol_term[]=">";
+
 uint8_t input_mon[1]={0};
-uint8_t input_mon_buff[4]={0};
+uint8_t input_mon_buff[5]={0};
 
 uint8_t str[50];
 uint8_t monitorTest = 0; // global flag TEST
 
 //-------------- UART -------------------//
+const uint16_t uartBlock_ms = 120;
+
 void clear_uart_buff(void)
 {
-  memset(input_mon_buff,0,sizeof(input_mon_buff));
+  memset(input_mon_buff, 0, sizeof(input_mon_buff));
 }
 
 void UART_receve_IT(void)
@@ -53,35 +56,35 @@ void UART_receve_IT(void)
 
 void sendUART_WARNING(void)
 {
-  HAL_UART_Transmit(&huart1, WARNING, 0, 0xFFFF); 
+  HAL_UART_Transmit(&huart1, WARNING, 0, uartBlock_ms); 
 }
 
 static void sendUART_symbolTerm(void)
 {
-  HAL_UART_Transmit(&huart1, symbol_term, 1, 0xFFFF);
+  HAL_UART_Transmit(&huart1, symbol_term, 1, uartBlock_ms);
 }
 
 void sendUART_hello(void)
 {
-  HAL_UART_Transmit(&huart1, hello_string, 25, 0xFFFF);
-  HAL_UART_Transmit(&huart1, version, 6, 0xFFFF);
-  HAL_UART_Transmit(&huart1, enter_help, 12, 0xFFFF);
+  HAL_UART_Transmit(&huart1, hello_string, 25, uartBlock_ms);
+  HAL_UART_Transmit(&huart1, version, 6, uartBlock_ms);
+  HAL_UART_Transmit(&huart1, enter_help, 12, uartBlock_ms);
   sendUART_symbolTerm();
 }
 
 static void sendUART_OK(void)
 {
-  HAL_UART_Transmit(&huart1, mon_OK, 4, 0xFFFF); 
+  HAL_UART_Transmit(&huart1, mon_OK, 4, uartBlock_ms); 
 }
 
 static void sendUART_r_n(void)
 {
-  HAL_UART_Transmit(&huart1, r_n, 2, 0xFFFF);
+  HAL_UART_Transmit(&huart1, r_n, 2, uartBlock_ms);
 }
 
 static void sendUART_error(void)
 {
-  HAL_UART_Transmit(&huart1, error, 7, 0xFFFF); 
+  HAL_UART_Transmit(&huart1, error, 7, uartBlock_ms); 
 }
 
 
@@ -92,28 +95,15 @@ static void monitor(void)
   if((huart1.RxXferCount==0)&&(HAL_UART_Receive_IT (&huart1, input_mon, 1) != HAL_BUSY))
   {                        
 #if 1
-    HAL_UART_Transmit(&huart1, input_mon, 1, 0xFFFF); //Local echo
+    HAL_UART_Transmit(&huart1, input_mon, 1, uartBlock_ms); //Local echo
 #endif
 	if(input_mon[0] == 13)
     { // enter key
-	  sendUART_r_n();
-	  sendUART_symbolTerm();
-	  rec_len = 0;
-	  clear_uart_buff();
-	  monitorTest = 0;  //reset TEST
-	}
-    else
-    {
-	  input_mon_buff[rec_len++]=input_mon[0]; // load char do string
-	  if (rec_len > 3)
-      {
-		rec_len = 0;			
-		//HAL_UART_Transmit(&huart1,input_mon_buff,4,0xFFFF);
-		sendUART_r_n();
+      sendUART_r_n();
 		if (((input_mon_buff[0] == 'H')||(input_mon_buff[0] == 'h'))&&((input_mon_buff[1] == 'E')||(input_mon_buff[1] == 'e'))\
 		&&((input_mon_buff[2] == 'L')||(input_mon_buff[2] == 'l'))&&((input_mon_buff[3] == 'P')||(input_mon_buff[3] == 'p')))
         { // enter HELP
-		  HAL_UART_Transmit(&huart1, mon_comand, 236, 0xFFFF);
+		  HAL_UART_Transmit(&huart1, mon_comand, strlen((char *)mon_comand), uartBlock_ms);
         }
         else if (((input_mon_buff[0] == 'T')||(input_mon_buff[0] == 't'))&&((input_mon_buff[1] == 'E')||(input_mon_buff[1] == 'e'))\
 		  &&((input_mon_buff[2] == 'S')||(input_mon_buff[2] == 's'))&&((input_mon_buff[3] == 'T')||(input_mon_buff[3] == 't'))){ // enter TEST
@@ -151,13 +141,29 @@ static void monitor(void)
 		}
         else
         {
-		  sendUART_error(); 
-		  sendUART_symbolTerm();
+          if (input_mon_buff[0] == 0)
+          {
+	        sendUART_symbolTerm();
+	        clear_uart_buff();
+            rec_len = 0;
+	        monitorTest = 0;  //reset TEST
+          }
+          else
+          {
+		    sendUART_error(); 
+		    sendUART_symbolTerm();
+          }
 		}
-		
+        
         clear_uart_buff();
-		HAL_UART_Receive_IT(&huart1,(uint8_t*) input_mon, 1);    
-	  }
+        rec_len = 0;	
+	}
+    else
+    {
+      if (rec_len <= 5)
+      {
+        input_mon_buff[rec_len++]=input_mon[0]; // load char do string
+      }  
 	}
   }
 }
@@ -166,15 +172,16 @@ static void monitor_out_test(void)
 {
   uint32_t power;
 
-	switch(monitorTest){
+	switch(monitorTest)
+    {
 		case 1: 
 		  sprintf((char *)str,"%d\r\n", voltage); // out Voltage
-			HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			osDelay(100);	
 			break;
 		case 2: 		
 			sprintf((char *)str,"%d\r\n", current); // out Curent
-			HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			osDelay(100);
 			break;
 		case 3:                    // out TEST
@@ -185,12 +192,12 @@ static void monitor_out_test(void)
 			break;
 		case 4:                    // out GLOB_TEST - dopisat obrabotchic
 			sprintf((char *)str,"%d.%d\t", voltage/100, voltage%100); // out Voltage
-			HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			sprintf((char *)str,"%d.%d\t", current/1000,current%1000); // out Curent
-			HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			power = voltage * current;
 			sprintf((char *)str,"%d.%d\r\n", power/100000,(power/10000)%10); 
-		    HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+		    HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			osDelay(100);
 		  break;		
 		default:;
