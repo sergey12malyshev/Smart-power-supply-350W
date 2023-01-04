@@ -9,6 +9,13 @@
 #include "main.h"
 #include "hardware.h"
 
+
+/*
+* проверка равенства строковых констант
+* возвращает FALSE при неравенстве, !FALSE при равенстве
+*/
+#define	Mon_IsStrEqu(ptr, cmd) (!strcmp(ptr, cmd))
+
 extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart1;
 
@@ -16,7 +23,7 @@ extern uint16_t zero_ad712;
 extern uint16_t voltage;
 extern uint16_t current;
 
-enum COMAND {HELP = 0, RSTT, RSTW, TEST, VOLT, CURR, ONPS, OFPS, VIEW};
+enum COMAND {HELP = 0, RST, R, TEST, VOLTAGE, CURRENT, ONPS, OFF, POWER};
 
 uint8_t hello_string[]= "Controller Power Supply\r\n";
 uint8_t enter_help[]= "Enter HELP\r\n";
@@ -26,20 +33,21 @@ uint8_t error[]="ERROR\r\n";
 uint8_t WARNING[]="WARNING:Power switch faulty!\r\n";
 uint8_t mon_OK[]="OK\r\n";
 uint8_t mon_comand[]="Enter monitor comman:\r\n\
-HELP-See existing commands\r\n\
-RSTT-Restart\r\n\
-RSTW-restart using WDT\r\n\
+HELP-see existing commands\r\n\
+RST-restart\r\n\
+R-restart using WDT\r\n\
 TEST-Set LED\r\n\
-VOLT-show out voltage 0.01V\r\n\
-CURR-show out current\r\n\
-ONPS-On Power switch\r\n\
-OFPS-Off Power switch\r\n\
-VIEW-voltage current power view\r\n\
+VOLTAGE-show out voltage 0.01V\r\n\
+CURRENT-show out current\r\n\
+ON-On Power switch\r\n\
+OFF-Off Power switch\r\n\
+POWER-voltage current power view\r\n\
 >";
 uint8_t symbol_term[]=">";
 
 uint8_t input_mon[1]={0};
-uint8_t input_mon_buff[5]={0};
+const uint8_t sizeBuff = 9;
+char input_mon_buff[sizeBuff]={0};
 
 uint8_t str[50];
 uint8_t monitorTest = 0; // global flag TEST
@@ -92,7 +100,7 @@ static void sendUART_error(void)
 
 static void convertToUppercase(void)
 {
-  static uint8_t *copy_ptr;
+  static char *copy_ptr;
        
   copy_ptr = input_mon_buff;
   while (*copy_ptr != 0)
@@ -125,34 +133,34 @@ static void monitor(void)
 		  monitorTest = TEST;		
 		  sendUART_OK();
 		}
-        else if ((input_mon_buff[0] == 'V')&&(input_mon_buff[1] == 'O')&&(input_mon_buff[2] == 'L')&&(input_mon_buff[3] == 'T')){ // enter VOLT
-		  monitorTest = VOLT;
+        else if (Mon_IsStrEqu(input_mon_buff, (void*)"VOLTAGE")){
+		  monitorTest = VOLTAGE;
 	      sendUART_OK();
 		}
-        else if ((input_mon_buff[0] == 'C')&&(input_mon_buff[1] == 'U')&&(input_mon_buff[2] == 'R')&&(input_mon_buff[3] == 'R')){ // enter CURR
-		  monitorTest = CURR;
+        else if (Mon_IsStrEqu(input_mon_buff, "CURRENT")){ 
+		  monitorTest = CURRENT;
 		  sendUART_OK();
         }
-        else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'N')&&(input_mon_buff[2] == 'P')&&(input_mon_buff[3] == 'S')){ // enter ONPS
+        else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'N')){ // enter ON
 		  sendUART_OK();		
 		  on_ps();
 		}
-        else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'F')&&(input_mon_buff[2] == 'P')&&(input_mon_buff[3] == 'S')){ // enter OFPS
+        else if ((input_mon_buff[0] == 'O')&&(input_mon_buff[1] == 'F')&&(input_mon_buff[2] == 'F')){ // enter OFPS
 		  sendUART_OK();				
 		  off_ps();
 		}
-        else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')&&(input_mon_buff[3] == 'W')){ // enter RSTW
+        else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')){ // enter RST
 		  sendUART_OK();	
 		  vTaskSuspendAll();				
 		  while(1); 			
 		}
-        else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')&&(input_mon_buff[3] == 'T')){ // enter RSTT
+        else if ((input_mon_buff[0] == 'R')){ // enter R
 		  sendUART_OK();	
 		  HAL_NVIC_SystemReset();
 		}
-        else if ((input_mon_buff[0] == 'V')&&(input_mon_buff[1] == 'I')&&(input_mon_buff[2] == 'E')&&(input_mon_buff[3] == 'W')){ // enter VIEW
+        else if (Mon_IsStrEqu(input_mon_buff, "POWER")){ // enter POWER
 		  sendUART_OK();	
-		  monitorTest = VIEW;
+		  monitorTest = POWER;
 		}
         else
         {
@@ -175,7 +183,7 @@ static void monitor(void)
 	}
     else
     {
-      if (rec_len <= 5)
+      if (rec_len <= sizeBuff)
       {
         input_mon_buff[rec_len++]=input_mon[0]; // load char do string
       }  
@@ -189,12 +197,12 @@ static void monitor_out_test(void)
 
 	switch(monitorTest)
     {
-		case VOLT: 
+		case VOLTAGE: 
 		  sprintf((char *)str,"%d\r\n", voltage); // out Voltage
 			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			osDelay(100);	
 			break;
-		case CURR: 		
+		case CURRENT: 		
 			sprintf((char *)str,"%d\r\n", current); // out Curent
 			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			osDelay(100);
@@ -205,7 +213,7 @@ static void monitor_out_test(void)
 			off_ps();
 			osDelay(900);
 			break;
-		case VIEW:                    // out GLOB_TEST - dopisat obrabotchic
+		case POWER:                    // out GLOB_TEST - dopisat obrabotchic
 			sprintf((char *)str,"%d.%d\t", voltage/100, voltage%100); // out Voltage
 			HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
 			sprintf((char *)str,"%d.%d\t", current/1000,current%1000); // out Curent
