@@ -25,7 +25,9 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <string.h>	
+#include <stdbool.h>
 #include "task.h"
+#include "monitorTask.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,10 +37,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define reset_WDT    HAL_IWDG_Refresh(&hiwdg)
-#define TRUE 1
-#define FALSE 0
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -137,53 +135,63 @@ void StartMonitorTask(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void on_ps (void){
-		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
-		state_set_pwr = TRUE;
-		HAL_Delay(10);
+
+void reset_WDT(void)
+{
+  HAL_IWDG_Refresh(&hiwdg);
+}  
+
+void on_ps (void)
+{
+	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_RESET);
+	state_set_pwr = true;
+	HAL_Delay(10);
 }	
-void off_ps (void){
-		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);
-		state_set_pwr= FALSE;
+void off_ps (void)
+{
+  HAL_GPIO_WritePin(GPIOB,GPIO_PIN_12,GPIO_PIN_SET);
+  state_set_pwr= false;
 }	
 
-void calibr_zero_AD712 (void){
-		HAL_Delay (100); // delay t
-		HAL_ADC_Start(&hadc2);
-		HAL_ADC_PollForConversion(&hadc2,100);
-		uint16_t adc_2 = (uint32_t) HAL_ADC_GetValue(&hadc2);
-		zero_ad712 =((adc_2*3300)/4096);
-	  HAL_ADC_Stop(&hadc2);
+void calibr_zero_AD712(void)
+{
+	HAL_Delay (100); // delay t
+	HAL_ADC_Start(&hadc2);
+	HAL_ADC_PollForConversion(&hadc2,100);
+	uint16_t adc_2 = (uint32_t) HAL_ADC_GetValue(&hadc2);
+	zero_ad712 =((adc_2*3300)/4096);
+	HAL_ADC_Stop(&hadc2);
 }
 
-void adc1_convertion(void){  // voltage in 0.01 V
-
-    HAL_ADC_Start(&hadc1);
-		HAL_ADC_PollForConversion(&hadc1,100);
-		uint16_t adc_1 = (uint32_t) HAL_ADC_GetValue(&hadc1);
-		voltage = (adc_1*33*107)/4096; //9,1K 910 OHM -> 11*3=33 (36)V MAX INPUT 
-	  HAL_ADC_Stop(&hadc1);
+void adc1_convertion(void)
+{  // voltage in 0.01 V
+  HAL_ADC_Start(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1,100);
+	uint16_t adc_1 = (uint32_t) HAL_ADC_GetValue(&hadc1);
+	voltage = (adc_1*33*107)/4096; //9,1K 910 OHM -> 11*3=33 (36)V MAX INPUT 
+	HAL_ADC_Stop(&hadc1);
 }
 
-void adc2_convertion(void){
-
-    HAL_ADC_Start(&hadc2);
-		HAL_ADC_PollForConversion(&hadc2,100);
-		uint16_t adc_2 = (uint32_t) HAL_ADC_GetValue(&hadc2);
-		uint16_t volt_do_current =((adc_2*3300)/4096);
-		if (volt_do_current <zero_ad712) current = (zero_ad712 - volt_do_current)*10; //ACS712 invert connect
-		else current = 0;
-	  HAL_ADC_Stop(&hadc2);
+void adc2_convertion(void)
+{
+  HAL_ADC_Start(&hadc2);
+	HAL_ADC_PollForConversion(&hadc2,100);
+	uint16_t adc_2 = (uint32_t) HAL_ADC_GetValue(&hadc2);
+	uint16_t volt_do_current =((adc_2*3300)/4096);
+	if (volt_do_current <zero_ad712) current = (zero_ad712 - volt_do_current)*10; //ACS712 invert connect
+	else current = 0;
+	HAL_ADC_Stop(&hadc2);
 }
 
-void clear_uart_buff(void){
-	
-		memset(input_mon_buff,0,sizeof(input_mon_buff));
+void clear_uart_buff(void)
+{
+	memset(input_mon_buff,0,sizeof(input_mon_buff));
 }
 
-void monitor (void){
-	
-	static uint8_t rec_len=0;
+void monitor (void)
+{
+	static uint8_t rec_len = 0;
+
 	if((huart1.RxXferCount==0)&&(HAL_UART_Receive_IT (&huart1, input_mon, 1) != HAL_BUSY)){                        
 #if 1
 		  HAL_UART_Transmit(&huart1,input_mon,1,0xFFFF); //Local echo
@@ -285,13 +293,14 @@ void monitor_out_test(void)
 	}
 }
 
-void Check_Task(void){
+void Check_Task(void)
+{
+	if (HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_5)== false) state_now_power = true;
+	else state_now_power = false;
 	
-	if (HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_5)==0) state_now_power=TRUE;
-	else state_now_power = FALSE;
-	
-	if (state_now_power !=state_set_pwr) {
-		HAL_UART_Transmit(&huart1,WARNING,30,0xFFFF); 
+	if (state_now_power != state_set_pwr) 
+  {
+		HAL_UART_Transmit(&huart1, WARNING, 0, 0xFFFF); 
 	}
 }
 
@@ -334,12 +343,12 @@ int main(void)
 	off_ps(); 
 	
 	clear_uart_buff();
-  HAL_UART_Receive_IT(&huart1,(uint8_t*) input_mon,1);
+  HAL_UART_Receive_IT(&huart1,(uint8_t*) input_mon, 1);
 	
-	HAL_UART_Transmit(&huart1,hello_string,25,0xFFFF);
-	HAL_UART_Transmit(&huart1,version,6,0xFFFF);
-	HAL_UART_Transmit(&huart1,enter_help,12,0xFFFF);
-	HAL_UART_Transmit(&huart1,symbol_term,1,0xFFFF);
+	HAL_UART_Transmit(&huart1, hello_string, 25, 0xFFFF);
+	HAL_UART_Transmit(&huart1, version, 6, 0xFFFF);
+	HAL_UART_Transmit(&huart1, enter_help, 12, 0xFFFF);
+	HAL_UART_Transmit(&huart1, symbol_term, 1, 0xFFFF);
 	
 	calibr_zero_AD712();
 	
@@ -635,8 +644,8 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if (HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_5)==0) state_now_power=FALSE;
-	else state_now_power=TRUE;
+	if (HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_5)==0) state_now_power=false;
+	else state_now_power=true;
 }
 /* USER CODE END 4 */
 
@@ -654,7 +663,7 @@ void StartDefaultTask(void *argument)
   for(;;)
   {
     osDelay(1);
-		reset_WDT;
+		reset_WDT();
   }
   /* USER CODE END 5 */
 }
@@ -676,7 +685,7 @@ void StartMainTask(void *argument)
   for(;;)
   {
 		task10msCnt++;
-		reset_WDT;
+		reset_WDT();
 		adc1_convertion();
 		adc2_convertion();
 		
@@ -703,7 +712,7 @@ void StartCheckTask(void *argument)
   for(;;)
   {
 		Check_Task();
-		reset_WDT;
+		reset_WDT();
 		
     vTaskDelayUntil(&xLastWakeTime, xFrequency);
   }
@@ -720,16 +729,7 @@ void StartCheckTask(void *argument)
 void StartMonitorTask(void *argument)
 {
   /* USER CODE BEGIN StartMonitorTask */
-		TickType_t xLastWakeTime;
-		const TickType_t xFrequency = 20 / portTICK_PERIOD_MS; // 20 ms period TASK
-		xLastWakeTime = xTaskGetTickCount();
-  /* Infinite loop */
-  for(;;)
-  {
-		monitor();
-		monitor_out_test();
-    vTaskDelayUntil(&xLastWakeTime, xFrequency);
-  }
+  monitorTask();
   /* USER CODE END StartMonitorTask */
 }
 
