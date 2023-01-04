@@ -18,7 +18,6 @@ extern uint16_t current;
 uint8_t hello_string[]= "Controller Power Supply\r\n";
 uint8_t enter_help[]= "Enter HELP\r\n";
 uint8_t version[]="v0.1\r\n";
-uint8_t input_mon[]=" ";
 uint8_t r_n[]="\r\n";
 uint8_t error[]="ERROR\r\n";
 uint8_t WARNING[]="WARNING:Power switch faulty!\r\n";
@@ -35,7 +34,8 @@ OFPS-Off Power switch\r\n\
 VIEW-voltage current power view\r\n\
 >";
 uint8_t symbol_term[]=">";
-uint8_t input_mon_buff[]="    ";
+uint8_t input_mon[1]={0};
+uint8_t input_mon_buff[4]={0};
 
 uint8_t str[50];
 uint8_t monitorTest = 0; // global flag TEST
@@ -56,18 +56,34 @@ void sendUART_WARNING(void)
   HAL_UART_Transmit(&huart1, WARNING, 0, 0xFFFF); 
 }
 
+static void sendUART_symbolTerm(void)
+{
+  HAL_UART_Transmit(&huart1, symbol_term, 1, 0xFFFF);
+}
+
 void sendUART_hello(void)
 {
   HAL_UART_Transmit(&huart1, hello_string, 25, 0xFFFF);
   HAL_UART_Transmit(&huart1, version, 6, 0xFFFF);
   HAL_UART_Transmit(&huart1, enter_help, 12, 0xFFFF);
-  HAL_UART_Transmit(&huart1, symbol_term, 1, 0xFFFF);
+  sendUART_symbolTerm();
 }
 
 static void sendUART_OK(void)
 {
   HAL_UART_Transmit(&huart1, mon_OK, 4, 0xFFFF); 
 }
+
+static void sendUART_r_n(void)
+{
+  HAL_UART_Transmit(&huart1, r_n, 2, 0xFFFF);
+}
+
+static void sendUART_error(void)
+{
+  HAL_UART_Transmit(&huart1, error, 7, 0xFFFF); 
+}
+
 
 static void monitor(void)
 {
@@ -80,8 +96,8 @@ static void monitor(void)
 #endif
 	if(input_mon[0] == 13)
     { // enter key
-	  HAL_UART_Transmit(&huart1, r_n, 2, 0xFFFF);
-	  HAL_UART_Transmit(&huart1, symbol_term, 2, 0xFFFF);
+	  sendUART_r_n();
+	  sendUART_symbolTerm();
 	  rec_len = 0;
 	  clear_uart_buff();
 	  monitorTest = 0;  //reset TEST
@@ -93,7 +109,7 @@ static void monitor(void)
       {
 		rec_len = 0;			
 		//HAL_UART_Transmit(&huart1,input_mon_buff,4,0xFFFF);
-		HAL_UART_Transmit(&huart1, r_n, 2, 0xFFFF);
+		sendUART_r_n();
 		if (((input_mon_buff[0] == 'H')||(input_mon_buff[0] == 'h'))&&((input_mon_buff[1] == 'E')||(input_mon_buff[1] == 'e'))\
 		&&((input_mon_buff[2] == 'L')||(input_mon_buff[2] == 'l'))&&((input_mon_buff[3] == 'P')||(input_mon_buff[3] == 'p')))
         { // enter HELP
@@ -135,8 +151,8 @@ static void monitor(void)
 		}
         else
         {
-		  HAL_UART_Transmit(&huart1,error,7,0xFFFF); 
-		  HAL_UART_Transmit(&huart1,symbol_term,1,0xFFFF);
+		  sendUART_error(); 
+		  sendUART_symbolTerm();
 		}
 		
         clear_uart_buff();
@@ -174,7 +190,7 @@ static void monitor_out_test(void)
 			HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
 			power = voltage * current;
 			sprintf((char *)str,"%d.%d\r\n", power/100000,(power/10000)%10); 
-		  HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+		    HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
 			osDelay(100);
 		  break;		
 		default:;
