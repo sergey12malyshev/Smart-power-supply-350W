@@ -48,7 +48,7 @@ void calibr_zero_AD712(void)
 void adc1_convertion(void)
 {  // voltage in 0.01 V
   HAL_ADC_Start(&hadc1);
-  HAL_ADC_PollForConversion(&hadc1,100);
+  HAL_ADC_PollForConversion(&hadc1, 100);
   uint16_t adc_1 = (uint32_t) HAL_ADC_GetValue(&hadc1);
   voltage = (adc_1*33*107)/4096; //9,1K 910 OHM -> 11*3=33 (36)V MAX INPUT 
   HAL_ADC_Stop(&hadc1);
@@ -57,7 +57,7 @@ void adc1_convertion(void)
 void adc2_convertion(void)
 {
   HAL_ADC_Start(&hadc2);
-  HAL_ADC_PollForConversion(&hadc2,100);
+  HAL_ADC_PollForConversion(&hadc2, 100);
   uint16_t adc_2 = (uint32_t) HAL_ADC_GetValue(&hadc2);
   uint16_t volt_do_current =((adc_2*3300)/4096);
   if (volt_do_current <zero_ad712) current = (zero_ad712 - volt_do_current)*10; //ACS712 invert connect
