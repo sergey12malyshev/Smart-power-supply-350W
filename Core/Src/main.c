@@ -250,36 +250,38 @@ void monitor (void){
 	}
 }
 
-void monitor_out_test(void){
+void monitor_out_test(void)
+{
+  uint32_t power;
+
 	switch(monitorTest){
 		case 1: 
-								sprintf(str,"%d\r\n", voltage); // out Voltage
-								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
-								osDelay(100);	
-								break;
+		  sprintf((char *)str,"%d\r\n", voltage); // out Voltage
+			HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+			osDelay(100);	
+			break;
 		case 2: 		
-								sprintf(str,"%d\r\n", current); // out Curent
-								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
-								osDelay(100);
-								break;
+			sprintf((char *)str,"%d\r\n", current); // out Curent
+			HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+			osDelay(100);
+			break;
 		case 3:                    // out TEST
-								on_ps();
-								osDelay(900);
-								off_ps();
-								osDelay(900);
-								break;
+			on_ps();
+			osDelay(900);
+			off_ps();
+			osDelay(900);
+			break;
 		case 4:                    // out GLOB_TEST - dopisat obrabotchic
-								sprintf(str,"%d.%d\t", voltage/100, voltage%100); // out Voltage
-								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
-								sprintf(str,"%d.%d\t", current/1000,current%1000); // out Curent
-								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
-								uint32_t power = voltage * current;
-								sprintf(str,"%d.%d\r\n", power/100000,(power/10000)%10); 
-								HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
-								osDelay(100);
-								break;
-								
-		default:	;
+			sprintf((char *)str,"%d.%d\t", voltage/100, voltage%100); // out Voltage
+			HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+			sprintf((char *)str,"%d.%d\t", current/1000,current%1000); // out Curent
+			HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+			power = voltage * current;
+			sprintf((char *)str,"%d.%d\r\n", power/100000,(power/10000)%10); 
+		  HAL_UART_Transmit(&huart1, str, strlen((char *)str),0xFFFF);
+			osDelay(100);
+		  break;		
+		default:;
 	}
 }
 
