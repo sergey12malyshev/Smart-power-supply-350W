@@ -8,6 +8,7 @@
 #include "task.h"
 #include "main.h"
 #include "hardware.h"
+#include "mainTask.h"
 
 #define mon_strcmp(ptr, cmd) (!strcmp(ptr, cmd))
 
@@ -15,6 +16,8 @@ extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart1;
 
 extern uint16_t zero_ad712;
+extern uint16_t adc1_value;
+extern uint16_t adc2_value;
 extern uint16_t voltage;
 extern uint16_t current;
 
@@ -24,9 +27,10 @@ enum COMAND
   RST,
   R,
   TEST,
+  ADC,
   VOLTAGE,
   CURRENT,
-  ONPS,
+  ON,
   OFF,
   POWER
 };
@@ -43,7 +47,8 @@ static uint8_t mon_comand[] = "Enter monitor comman:\r\n\
 HELP-see existing commands\r\n\
 RST-restart\r\n\
 R-restart using WDT\r\n\
-TEST-Set LED\r\n\
+TEST-set LED\r\n\
+ADC-show ADC chanel\r\n\
 VOLTAGE-show out voltage 0.01V\r\n\
 CURRENT-show out current\r\n\
 ON-On Power switch\r\n\
@@ -151,6 +156,11 @@ static void monitor(void)
         monitorTest = TEST;
         sendUART_OK();
       }
+       else if ((input_mon_buff[0] == 'A') && (input_mon_buff[1] == 'D') && (input_mon_buff[2] == 'C'))
+      { // enter ADC
+        monitorTest = ADC;
+        sendUART_OK();
+      }
       else if (mon_strcmp(input_mon_buff, (void *)"VOLTAGE"))
       {
         monitorTest = VOLTAGE;
@@ -233,6 +243,13 @@ static void monitor_out_test(void)
 
   switch (monitorTest)
   {
+  case ADC:
+    sprintf((char *)str, "%d\r\n", adc1_value);
+    HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
+    sprintf((char *)str, "%d\r\n", adc2_value);
+    HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
+    osDelay(100);
+    break;
   case VOLTAGE:
     sprintf((char *)str, "%d\r\n", voltage);
     HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
