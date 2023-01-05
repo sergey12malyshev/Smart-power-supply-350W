@@ -11,15 +11,14 @@ void mainTask(void)
   TickType_t xLastWakeTime;
   const TickType_t xFrequency = 10 / portTICK_PERIOD_MS; // 10 ms period TASK
   xLastWakeTime = xTaskGetTickCount();
-  
-  for(;;)
+
+  for (;;)
   {
-	task10msCnt++;
-	reset_WDT();
-	adc1_convertion();
-	adc2_convertion();
-		
+    task10msCnt++;
+    reset_WDT();
+    adc1_convertion();
+    adc2_convertion();
+
     vTaskDelayUntil(&xLastWakeTime, xFrequency);
   }
 }
-
