@@ -30,6 +30,7 @@
 #include "hardware.h"
 #include "mainTask.h"
 #include "monitorTask.h"
+#include "checkTask.h"
 
 /* USER CODE END Includes */
 
@@ -106,31 +107,6 @@ void StartMonitorTask(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-static void controlStatePower(void)
-{
-	if (checkStatePower() != PinPowerEnableState())
-  {
-		sendUART_WARNING();
-    osDelay(900);
-	}
-}
-
-void checkTask(void)
-{
-  TickType_t xLastWakeTime;
-	const TickType_t xFrequency = 10 / portTICK_PERIOD_MS; // 10 ms period TASK
-	xLastWakeTime = xTaskGetTickCount();
-
-  for(;;)
-  {
-		controlStatePower();
-		reset_WDT();
-	
-    vTaskDelayUntil(&xLastWakeTime, xFrequency);
-  }
-}
-
 
 /* USER CODE END 0 */
 

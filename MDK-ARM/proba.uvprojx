@@ -535,6 +535,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\Hardware.c</FilePath>
             </File>
+            <File>
+              <FileName>checkTask.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\checkTask.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
