@@ -2,7 +2,6 @@
 #include "main.h"
 #include "hardware.h"
 
-extern uint8_t state_set_pwr;
 uint16_t zero_ad712;
 
 extern ADC_HandleTypeDef hadc1;
@@ -22,14 +21,35 @@ void reset_WDT(void)
 void on_ps(void)
 {
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-  state_set_pwr = true;
-  HAL_Delay(10);
 }
 
 void off_ps(void)
 {
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-  state_set_pwr = false;
+}
+
+bool PinPowerEnableState(void)
+{
+  if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12)== GPIO_PIN_RESET)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+bool checkStatePower(void)
+{
+  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5)== GPIO_PIN_RESET)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 //-------------- ADC -------------------//

@@ -65,11 +65,17 @@ uint8_t str[50];
 uint8_t monitorTest = 0; // global flag TEST
 
 //-------------- UART -------------------//
-const uint16_t uartBlock_ms = 120;
 
 void clear_uart_buff(void)
 {
   memset(input_mon_buff, 0, sizeof(input_mon_buff));
+}
+
+void sendUART(uint8_t TxBufferUartLocal[])
+{ //передача в блокирующем режиме
+  const uint8_t block_timeout_ms = 40; //t(sec)=(FRAME/BOUND+MINT)*N = (10/115200+0.00001)*100 = 19 мс
+
+  HAL_UART_Transmit(&huart1, (uint8_t*) TxBufferUartLocal, strlen((char *) TxBufferUartLocal), block_timeout_ms);
 }
 
 void UART_receve_IT(void)
@@ -79,45 +85,45 @@ void UART_receve_IT(void)
 
 void sendUART_WARNING(void)
 {
-  HAL_UART_Transmit(&huart1, WARNING, 0, uartBlock_ms);
+  sendUART(WARNING);
 }
 
 static void sendUART_symbolTerm(void)
 {
-  HAL_UART_Transmit(&huart1, symbol_term, 1, uartBlock_ms);
+  sendUART(symbol_term);
 }
 
 void sendUART_hello(void)
 {
-  HAL_UART_Transmit(&huart1, hello_string, 25, uartBlock_ms);
-  HAL_UART_Transmit(&huart1, version, 6, uartBlock_ms);
-  HAL_UART_Transmit(&huart1, enter_help, 12, uartBlock_ms);
+  sendUART(hello_string);
+  sendUART(version);
+  sendUART(enter_help);
   sendUART_symbolTerm();
 }
 
 void sendUART_help(void)
 {
-  HAL_UART_Transmit(&huart1, mon_comand, strlen((char *)mon_comand), uartBlock_ms);
+  sendUART(mon_comand);
 }
 
 static void sendUART_OK(void)
 {
-  HAL_UART_Transmit(&huart1, mon_OK, 4, uartBlock_ms);
+  sendUART(mon_OK);
 }
 
 static void sendUART_r_n(void)
 {
-  HAL_UART_Transmit(&huart1, r_n, 2, uartBlock_ms);
+  sendUART(r_n);
 }
 
 static void sendUART_error(void)
 {
-  HAL_UART_Transmit(&huart1, error, 7, uartBlock_ms);
+  sendUART(error);
 }
 
 static void sendBackspaceStr(void)
 {
-  HAL_UART_Transmit(&huart1, backspace_str, 2, uartBlock_ms);
+  sendUART(backspace_str);
 }
 
 static void convertToUppercase(void)
@@ -141,7 +147,7 @@ static void monitor(void)
   if ((huart1.RxXferCount == 0) && (HAL_UART_Receive_IT(&huart1, input_mon, 1) != HAL_BUSY))
   {
 #if 1
-    HAL_UART_Transmit(&huart1, input_mon, 1, uartBlock_ms); // Local echo
+    HAL_UART_Transmit(&huart1, input_mon, 1, 50); // Local echo
 #endif
     if (input_mon[0] == enter)
     {
@@ -175,6 +181,7 @@ static void monitor(void)
       { // enter ON
         sendUART_OK();
         on_ps();
+        osDelay(10);
       }
       else if ((input_mon_buff[0] == 'O') && (input_mon_buff[1] == 'F') && (input_mon_buff[2] == 'F'))
       { // enter OFF
@@ -244,20 +251,20 @@ static void monitor_out_test(void)
   switch (monitorTest)
   {
   case ADC:
-    sprintf((char *)str, "%d\r\n", adc1_value);
-    HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
+    sprintf((char *)str, "%d\t", adc1_value);
+    sendUART(str);
     sprintf((char *)str, "%d\r\n", adc2_value);
-    HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
+    sendUART(str);
     osDelay(100);
     break;
   case VOLTAGE:
     sprintf((char *)str, "%d\r\n", voltage);
-    HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
+    sendUART(str);
     osDelay(100);
     break;
   case CURRENT:
     sprintf((char *)str, "%d\r\n", current);
-    HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
+    sendUART(str);
     osDelay(100);
     break;
   case TEST:
@@ -268,12 +275,12 @@ static void monitor_out_test(void)
     break;
   case POWER:
     sprintf((char *)str, "%d.%d\t", voltage / 100, voltage % 100);
-    HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
+    sendUART(str);
     sprintf((char *)str, "%d.%d\t", current / 1000, current % 1000);
-    HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
+    sendUART(str);
     power = voltage * current;
     sprintf((char *)str, "%d.%d\r\n", power / 100000, (power / 10000) % 10);
-    HAL_UART_Transmit(&huart1, str, strlen((char *)str), uartBlock_ms);
+    sendUART(str);
     osDelay(100);
     break;
   default:;

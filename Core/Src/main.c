@@ -40,6 +40,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define DEBUG         1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -84,8 +85,6 @@ const osThreadAttr_t monitorTask_attributes = {
   .priority = (osPriority_t) osPriorityLow,
 };
 /* USER CODE BEGIN PV */
-uint8_t state_now_power; 
-uint8_t state_set_pwr;
 
 /* USER CODE END PV */
 
@@ -108,14 +107,12 @@ void StartMonitorTask(void *argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void controlStatePower(void)
+static void controlStatePower(void)
 {
-	if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5)== GPIO_PIN_RESET) state_now_power = true;
-	else state_now_power = false;
-	
-	if (state_now_power != state_set_pwr) 
+	if (checkStatePower() != PinPowerEnableState())
   {
 		sendUART_WARNING();
+    osDelay(900);
 	}
 }
 
@@ -472,8 +469,10 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if (HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_5)==0) state_now_power=false;
-	else state_now_power=true;
+	if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5)==0)
+  {
+    ;
+  }
 }
 /* USER CODE END 4 */
 
