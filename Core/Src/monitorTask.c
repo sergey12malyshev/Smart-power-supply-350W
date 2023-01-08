@@ -39,7 +39,7 @@ enum COMAND
 
 static uint8_t hello_string[] = "Controller Power Supply\r\n";
 static uint8_t enter_help[] = "Enter HELP\r\n";
-static uint8_t version[] = "v0.1\r\n";
+static uint8_t version[] = "v0.2\r\n";
 static uint8_t r_n[] = "\r\n";
 static uint8_t error[] = "incorrect enter\r\n";
 static uint8_t WARNING[] = "WARNING:Power switch faulty!\r\n";

@@ -85,7 +85,7 @@ const osThreadAttr_t monitorTask_attributes = {
   .priority = (osPriority_t) osPriorityLow,
 };
 /* USER CODE BEGIN PV */
-
+extern uint16_t zero_ad712;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -142,18 +142,25 @@ int main(void)
   MX_ADC2_Init();
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
-	
+	HAL_ADCEx_Calibration_Start(&hadc1);
+  
 	off_ps(); 
-	
+
 	clear_uart_buff();
   UART_receve_IT();
-	
   sendUART_hello();
-	
-	calibr_zero_AD712();
-	
-	HAL_ADCEx_Calibration_Start(&hadc1);
+
 	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+  if (adc2_convertion()>= 3030) /* При сбросе пропускаем калибровку, если была нагрузка*/
+  {
+    calibr_zero_AD712();
+  }
+  else 
+  {
+    zero_ad712 = 2450; // установим значение по умолчанию
+  }
+  
   /* USER CODE END 2 */
 
   /* Init scheduler */
