@@ -33,28 +33,30 @@ enum COMAND
   CURRENT,
   ON,
   OFF,
-  POWER
+  POWER,
+  INFO
 };
 
 static uint8_t hello_string[] = "Controller Power Supply\r\n";
 static uint8_t enter_help[] = "Enter HELP\r\n";
 static uint8_t version[] = "v0.1\r\n";
 static uint8_t r_n[] = "\r\n";
-static uint8_t error[] = "ERROR\r\n";
+static uint8_t error[] = "incorrect enter\r\n";
 static uint8_t WARNING[] = "WARNING:Power switch faulty!\r\n";
 static uint8_t mon_OK[] = "OK\r\n";
 static uint8_t backspace_str[] = " \b";
-static uint8_t mon_comand[] = "Enter monitor comman:\r\n\
+static uint8_t mon_comand[] = "Enter monitor command:\r\n\
 HELP-see existing commands\r\n\
 RST-restart\r\n\
 R-restart using WDT\r\n\
-TEST-set LED\r\n\
+TEST- switch test\r\n\
 ADC-show ADC chanel\r\n\
-VOLTAGE-show out voltage 0.01V\r\n\
-CURRENT-show out current\r\n\
+VOLTAGE-show out voltage (0.01V)\r\n\
+CURRENT-show out current (mA)\r\n\
 ON-On Power switch\r\n\
 OFF-Off Power switch\r\n\
 POWER-voltage current power view\r\n\
+INFO - read about project\r\n\
 >";
 static uint8_t symbol_term[] = ">";
 
@@ -204,6 +206,11 @@ static void monitor(void)
       {
         sendUART_OK();
         monitorTest = POWER;
+      }
+      else if (mon_strcmp(input_mon_buff, "INFO"))
+      {
+        sendUART_OK();
+        sendUART("https://github.com/sergey12malyshev/Smart-power-supply-350W.git\r\n");
       }
       else
       {
