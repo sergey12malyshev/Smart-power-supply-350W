@@ -540,6 +540,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\checkTask.c</FilePath>
             </File>
+            <File>
+              <FileName>workState.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\workState.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

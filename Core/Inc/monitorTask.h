@@ -1,6 +1,8 @@
 #ifndef __MONITOR_H
 #define __MONITOR_H
 
+#include <stdint.h> /*бъявляет целочисленные типы*/
+
 void monitorTask(void);
 
 void clear_uart_buff(void);

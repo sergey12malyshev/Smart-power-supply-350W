@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "monitorTask.h"
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "task.h"

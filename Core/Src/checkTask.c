@@ -10,14 +10,23 @@
 #include "hardware.h"
 #include "checkTask.h"
 #include "monitorTask.h"
-
+#include "workState.h"
 
 static void controlStatePower(void)
 {
   if (checkStatePower() != PinPowerEnableState())
   {
+    setState(ALARM_STATE);
     sendUART_WARNING();
-    osDelay(900);
+    osDelay(1200);
+  }
+  else if (PinPowerEnableState())
+  {
+    setState(SWITCH_ON_STATE);
+  }
+  else
+  {
+    setState(SWITCH_OFF_STATE);
   }
 }
 
