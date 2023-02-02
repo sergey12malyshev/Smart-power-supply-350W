@@ -1,4 +1,4 @@
-Программно-аппаратный проект импульсного источника питания
+Программно-аппаратный проект импульсного источника питания c цифровой системой контроля
 
 ### Инструментарий
 Среда компиляции: KEIL.uVision V5.34.0.0 
@@ -21,6 +21,11 @@ FreeRTOS Kernel V10.0.1
 
 ### Прошивка ПО
 Подключть ST-Link V2, запустить **programFlash.bat**
+
+### Command Line Interface, CLI
+Терминал реализован через интерфейс UART TTL. Для Tera Term файл конфигурации: utils/TERATERM.INI
+
+<img src= "https://github.com/sergey12malyshev/Smart-power-supply-350W/blob/develop/hardware/picturies/CLI.bmp" width=20% height=20%>
 
 ### Аппаратная часть
 Расположена в директории *hardware*. Схемы Э3 и Э4 представлены в каталоге *shemes*. Модель импульсного преобразователя в программе LTSpice в каталоге *shemes*. Исходные файлы печатных плат в каталоге *pcb*. Изображения макетного образца в каталоге *picturies*
