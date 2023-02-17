@@ -12,6 +12,7 @@
 #include "mainTask.h"
 
 #define mon_strcmp(ptr, cmd) (!strcmp(ptr, cmd))
+#define LOCAL_ECHO_EN  1
 
 extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart1;
@@ -22,9 +23,9 @@ extern uint16_t adc2_value;
 extern uint16_t voltage;
 extern uint16_t current;
 
-enum COMAND
+typedef enum
 {
-  HELP = 0,
+  NONE = 0,
   RST,
   R,
   TEST,
@@ -35,7 +36,7 @@ enum COMAND
   OFF,
   POWER,
   INFO
-};
+}COMAND;
 
 static uint8_t hello_string[] = "Controller Power Supply\r\n";
 static uint8_t enter_help[] = "Enter HELP\r\n";
@@ -65,7 +66,8 @@ const uint8_t sizeBuff = 9;
 char input_mon_buff[sizeBuff] = {0};
 
 uint8_t str[50];
-uint8_t monitorTest = 0; // global flag TEST
+
+COMAND monitorTest = NONE; // global flag TEST
 
 //-------------- UART -------------------//
 
@@ -149,7 +151,7 @@ static void monitor(void)
 
   if ((huart1.RxXferCount == 0) && (HAL_UART_Receive_IT(&huart1, input_mon, 1) != HAL_BUSY))
   {
-#if 1
+#if LOCAL_ECHO_EN
     HAL_UART_Transmit(&huart1, input_mon, 1, 50); // Local echo
 #endif
     if (input_mon[0] == enter)
@@ -219,7 +221,7 @@ static void monitor(void)
           sendUART_symbolTerm();
           clear_uart_buff();
           rec_len = 0;
-          monitorTest = 0; // reset TEST
+          monitorTest = NONE; // reset TEST
         }
         else
         {

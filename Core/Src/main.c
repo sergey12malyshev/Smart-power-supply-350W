@@ -152,7 +152,7 @@ int main(void)
 
 	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
-  if (adc2_convertion()>= 3030) /* При сбросе пропускаем калибровку, если была нагрузка*/
+  if (adc2_convertion() >= 3030) /* При сбросе пропускаем калибровку, если была нагрузка*/
   {
     calibr_zero_AD712();
   }
