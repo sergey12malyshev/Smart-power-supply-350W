@@ -15,7 +15,7 @@ STM32F103C8T6 (фактически стоит китайский аналог C
 FreeRTOS Kernel V10.0.1
 
 ### Сборка 
-Запустить **Proba.BAT**
+Запустить **BuildRun.cmd**
  
 (Options for target ... -> Вкладка "Output" -> Галка "Create batch file")
 
@@ -23,7 +23,9 @@ FreeRTOS Kernel V10.0.1
 Подключть ST-Link V2, запустить **programFlash.bat**
 
 ### Command Line Interface, CLI
-Терминал реализован через интерфейс UART TTL. Для Tera Term файл конфигурации: *utils/TERATERM.INI*
+Терминал реализован через интерфейс UART TTL. 
+Для Tera Term файл конфигурации: *utils/TERATERM.INI*
+Для PuTTY запустить **PuTTYstart.cmd**
 
 <img src= "https://github.com/sergey12malyshev/Smart-power-supply-350W/blob/develop/hardware/picturies/CLI.bmp" width=25% height=24%>
 
