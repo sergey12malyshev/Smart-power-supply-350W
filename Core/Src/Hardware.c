@@ -53,6 +53,7 @@ bool checkStatePower(void)
 }
 
 //-------------- ADC -------------------//
+
 void calibr_zero_AD712(void)
 {
   HAL_Delay(100); // delay t
@@ -64,7 +65,7 @@ void calibr_zero_AD712(void)
 
   return;
 }
-
+/* Регулярные каналы, преобразования АЦП запускаем программно */
 uint16_t adc1_convertion(void)
 { // voltage in 0.01 V
   HAL_ADC_Start(&hadc1);

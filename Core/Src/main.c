@@ -4,16 +4,9 @@
   * @file           : main.c
   * @brief          : Main program body
   ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
+  * Программное обеспечение для контроллера импульсного источника питания
+  * Autor: Malyshev S.E.
+  * Date:  2019
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -142,15 +135,15 @@ int main(void)
   MX_ADC2_Init();
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
-	HAL_ADCEx_Calibration_Start(&hadc1);
+  HAL_ADCEx_Calibration_Start(&hadc1);
   
-	off_ps(); 
+  off_ps(); 
 
-	clear_uart_buff();
+  clear_uart_buff();
   UART_receve_IT();
   sendUART_hello();
 
-	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
   if (adc2_convertion() >= 3030) /* При сбросе пропускаем калибровку, если была нагрузка*/
   {
