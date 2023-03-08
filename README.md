@@ -5,6 +5,8 @@
 
 Редактор кода: VScode (файл *HOME_PS_300.code-workspace*)
 
+Используемые библиотеки: HAL ST
+
 ### Настройка периферии
 STM32 CubeMX
 
@@ -22,6 +24,13 @@ FreeRTOS Kernel V10.0.1
 ### Прошивка ПО
 Подключть ST-Link V2, запустить **programFlash.bat**
 
+### Репозиторий
+Применена модель ветвления git flow: http://danielkummer.github.io/git-flow-cheatsheet/
+
+Для инициализации запустить git bash и ввести:
+```bash
+git flow init -f
+```
 ### Command Line Interface, CLI
 Терминал реализован через интерфейс UART TTL. 
 Для Tera Term файл конфигурации: *utils/TERATERM.INI*
@@ -49,3 +58,10 @@ FreeRTOS Kernel V10.0.1
 https://microtechnics.ru/stm32cubemx-bystryj-start-s-freertos-dlya-stm32/
 
 https://hackaday.com/2020/10/22/stm32-clones-the-good-the-bad-and-the-ugly/
+
+### TODO
+- Поднять CAN;
+
+- Перевести на библиотеку LL;
+
+- Вместо RTOS применить легкие протопотоки (сопрограммы), например http://dunkels.com/adam/pt/
