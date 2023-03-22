@@ -1,5 +1,7 @@
 Программно-аппаратный проект импульсного источника питания c цифровой системой контроля
 
+Дипломный проект
+
 ### Инструментарий
 Среда компиляции: KEIL.uVision V5.34.0.0 
 
@@ -37,6 +39,9 @@ git flow init -f
 Для PuTTY запустить **PuTTYstart.cmd**
 
 <img src= "https://github.com/sergey12malyshev/Smart-power-supply-350W/blob/develop/hardware/picturies/CLI.bmp" width=25% height=24%>
+
+### Версионирование
+Semantic Versioning 2.0.0 https://semver.org/
 
 ### Аппаратная часть
 Расположена в директории *hardware*. Схемы Э3 и Э4 представлены в каталоге *shemes*. Модель импульсного преобразователя в программе LTSpice в каталоге *shemes*. Исходные файлы печатных плат в каталоге *pcb*. Изображения макетного образца в каталоге *picturies*
