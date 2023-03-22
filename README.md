@@ -30,13 +30,6 @@ FreeRTOS Kernel V10.0.1
 ### Прошивка ПО
 Подключть ST-Link V2, запустить **programFlash.bat**
 
-### Репозиторий
-Применена модель ветвления git flow: http://danielkummer.github.io/git-flow-cheatsheet/
-
-Для инициализации запустить git bash и ввести:
-```bash
-git flow init -f
-```
 ### Command Line Interface, CLI
 Терминал реализован через интерфейс UART TTL. 
 Для Tera Term файл конфигурации: *utils/TERATERM.INI*
@@ -44,6 +37,13 @@ git flow init -f
 
 <img src= "https://github.com/sergey12malyshev/Smart-power-supply-350W/blob/develop/hardware/picturies/CLI.bmp" width=25% height=24%>
 
+### Репозиторий
+Применена модель ветвления git flow: http://danielkummer.github.io/git-flow-cheatsheet/
+
+Для инициализации запустить git bash и ввести:
+```bash
+git flow init -f
+```
 ### Версионирование
 Semantic Versioning 2.0.0 https://semver.org/
 
@@ -71,7 +71,7 @@ https://microtechnics.ru/stm32cubemx-bystryj-start-s-freertos-dlya-stm32/
 
 https://hackaday.com/2020/10/22/stm32-clones-the-good-the-bad-and-the-ugly/
 
-### TODO
+## TODO ##
 - Поднять CAN;
 
 - Перевести на библиотеку LL;
