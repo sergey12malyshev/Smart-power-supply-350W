@@ -47,7 +47,12 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-#define DEBUG         1
+#define DEBUG            1
+
+/* Semantic Versioning 2.0.0 */
+#define VERSION_MAJOR    0U
+#define VERSION_MINOR    2U
+#define VERSION_PATCH    0U
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/

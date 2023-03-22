@@ -24,7 +24,7 @@
 #include "mainTask.h"
 #include "monitorTask.h"
 #include "checkTask.h"
-
+#include "ADC.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -78,7 +78,7 @@ const osThreadAttr_t monitorTask_attributes = {
   .priority = (osPriority_t) osPriorityLow,
 };
 /* USER CODE BEGIN PV */
-extern uint16_t zero_ad712;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -142,7 +142,6 @@ int main(void)
   clear_uart_buff();
   UART_receve_IT();
   sendUART_hello();
-
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
   if (adc2_convertion() >= 3030) /* При сбросе пропускаем калибровку, если была нагрузка*/
@@ -151,7 +150,7 @@ int main(void)
   }
   else 
   {
-    zero_ad712 = 2450; // установим значение по умолчанию
+    setZeroAD712(2450); // установим значение по умолчанию
   }
   
   /* USER CODE END 2 */

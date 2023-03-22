@@ -3,15 +3,14 @@
 #include "main.h"
 #include "hardware.h"
 #include "mainTask.h"
+#include "ADC.h"
 
-extern uint16_t zero_ad712;
 
 uint32_t task10msCnt = 0;
 
-volatile uint16_t adc1_value;
-volatile uint16_t adc2_value;
 uint16_t voltage;
 uint16_t current;
+
 
 void voltageConvertion(uint16_t adc_1)
 {
@@ -21,9 +20,9 @@ void voltageConvertion(uint16_t adc_1)
 void currentConvertion(uint16_t adc_2)
 {
   uint16_t volt_do_current = ((adc_2 * 3300) / 4096);
-  if (volt_do_current < zero_ad712)
+  if (volt_do_current < getZeroAD712())
   {
-    current = (zero_ad712 - volt_do_current) * 10; // ACS712 invert connect
+    current = (getZeroAD712() - volt_do_current) * 10; // ACS712 invert connect
   }
   else
   {
@@ -41,10 +40,11 @@ void mainTask(void)
   {
     task10msCnt++;
     
-    adc1_value = adc1_convertion();
-    adc2_value = adc2_convertion();
-    voltageConvertion(adc1_value);
-    currentConvertion(adc2_value);
+    setADC1value(adc1_convertion());
+    setADC2value(adc2_convertion());
+
+    voltageConvertion(getADC1value());
+    currentConvertion(getADC2value());
 
     reset_WDT();
     vTaskDelayUntil(&xLastWakeTime, xFrequency);

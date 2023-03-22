@@ -10,6 +10,7 @@
 #include "main.h"
 #include "hardware.h"
 #include "mainTask.h"
+#include "ADC.h"
 
 #define mon_strcmp(ptr, cmd) (!strcmp(ptr, cmd))
 #define LOCAL_ECHO_EN  1
@@ -17,9 +18,6 @@
 extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart1;
 
-extern uint16_t zero_ad712;
-extern uint16_t adc1_value;
-extern uint16_t adc2_value;
 extern uint16_t voltage;
 extern uint16_t current;
 
@@ -40,7 +38,6 @@ typedef enum
 
 static uint8_t hello_string[] = "Controller Power Supply\r\n";
 static uint8_t enter_help[] = "Enter HELP\r\n";
-static uint8_t version[] = "v0.2\r\n";
 static uint8_t r_n[] = "\r\n";
 static uint8_t error[] = "incorrect enter\r\n";
 static uint8_t WARNING[] = "WARNING:Power switch faulty!\r\n";
@@ -98,10 +95,24 @@ static void sendUART_symbolTerm(void)
   sendUART(symbol_term);
 }
 
+static void sendSNversion(void)
+{
+  uint8_t str[14];
+
+  sprintf((char *)str, "Version: %d", VERSION_MAJOR);
+  sendUART(str);
+  sendUART(".");
+  sprintf((char *)str, "%d", VERSION_MINOR);
+  sendUART(str);
+  sendUART(".");
+  sprintf((char *)str, "%d\r\n", VERSION_PATCH);
+  sendUART(str);
+}
+
 void sendUART_hello(void)
 {
   sendUART(hello_string);
-  sendUART(version);
+  sendSNversion();
   sendUART(enter_help);
   sendUART_symbolTerm();
 }
@@ -260,40 +271,40 @@ static void monitor_out_test(void)
 
   switch (monitorTest)
   {
-  case ADC:
-    sprintf((char *)str, "%d\t", adc1_value);
-    sendUART(str);
-    sprintf((char *)str, "%d\r\n", adc2_value);
-    sendUART(str);
-    osDelay(100);
-    break;
-  case VOLTAGE:
-    sprintf((char *)str, "%d\r\n", voltage);
-    sendUART(str);
-    osDelay(100);
-    break;
-  case CURRENT:
-    sprintf((char *)str, "%d\r\n", current);
-    sendUART(str);
-    osDelay(100);
-    break;
-  case TEST:
-    on_ps();
-    osDelay(900);
-    off_ps();
-    osDelay(900);
-    break;
-  case POWER:
-    sprintf((char *)str, "%d.%d\t", voltage / 100, voltage % 100);
-    sendUART(str);
-    sprintf((char *)str, "%d.%d\t", current / 1000, current % 1000);
-    sendUART(str);
-    power = voltage * current;
-    sprintf((char *)str, "%d.%d\r\n", power / 100000, (power / 10000) % 10);
-    sendUART(str);
-    osDelay(100);
-    break;
-  default:;
+    case ADC:
+      sprintf((char *)str, "%d\t", getADC1value());
+      sendUART(str);
+      sprintf((char *)str, "%d\r\n", getADC2value());
+      sendUART(str);
+      osDelay(100);
+      break;
+    case VOLTAGE:
+      sprintf((char *)str, "%d\r\n", voltage);
+      sendUART(str);
+      osDelay(100);
+      break;
+    case CURRENT:
+      sprintf((char *)str, "%d\r\n", current);
+      sendUART(str);
+      osDelay(100);
+      break;
+    case TEST:
+      on_ps();
+      osDelay(900);
+      off_ps();
+      osDelay(900);
+      break;
+    case POWER:
+      sprintf((char *)str, "%d.%d\t", voltage / 100, voltage % 100);
+      sendUART(str);
+      sprintf((char *)str, "%d.%d\t", current / 1000, current % 1000);
+      sendUART(str);
+      power = voltage * current;
+      sprintf((char *)str, "%d.%d\r\n", power / 100000, (power / 10000) % 10);
+      sendUART(str);
+      osDelay(100);
+      break;
+    default:;
   }
 }
 
