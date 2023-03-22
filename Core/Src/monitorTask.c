@@ -308,6 +308,10 @@ static void monitor_out_test(void)
   }
 }
 
+/*
+Задача монитора-отладчика, запуск и исполнение тестов
+*/
+
 void monitorTask(void)
 {
   TickType_t xLastWakeTime;

@@ -30,6 +30,9 @@ void currentConvertion(uint16_t adc_2)
   }
 }
 
+/*
+Задача запуска преобразований АЦП и преобразований физических величин
+*/
 void mainTask(void)
 {
   TickType_t xLastWakeTime;
