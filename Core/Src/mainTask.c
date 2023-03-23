@@ -12,7 +12,7 @@ uint16_t voltage;
 uint16_t voltage_av;
 uint16_t current;
 
-/* Экспоненциальное бегущее среднее  filt = (A * filt + signal) >> k;*/
+/* Экспоненциальное бегущее среднее  filt = (A * filt + signal) >> k, https://alexgyver.ru/lessons/filters/ */
 uint16_t expRunningAverageFilter(uint16_t input)
 {
   static uint32_t filt = 0;

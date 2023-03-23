@@ -46,16 +46,17 @@ static uint8_t WARNING[] = "WARNING:Power switch faulty!\r\n";
 static uint8_t mon_OK[] = "OK\r\n";
 static uint8_t backspace_str[] = " \b";
 static uint8_t mon_comand[] = "Enter monitor command:\r\n\
-HELP-see existing commands\r\n\
-RST-restart\r\n\
-R-restart using WDT\r\n\
-TEST- switch test\r\n\
-ADC-show ADC chanel\r\n\
-VOLTAGE-show out voltage (0.01V)\r\n\
-CURRENT-show out current (mA)\r\n\
-ON-On Power switch\r\n\
-OFF-Off Power switch\r\n\
-POWER-voltage current power view\r\n\
+HELP - see existing commands\r\n\
+RST - restart\r\n\
+R - restart using WDT\r\n\
+TEST - switch test\r\n\
+ADC - show ADC chanel\r\n\
+VOLTAGE - show out voltage (0.01V)\r\n\
+VOLTAGE AV - show out voltage average\r\n\
+CURRENT - show out current (mA)\r\n\
+ON - On Power switch\r\n\
+OFF - Off Power switch\r\n\
+POWER - voltage current power view\r\n\
 INFO - read about project\r\n\
 >";
 static uint8_t symbol_term[] = ">";
@@ -171,21 +172,21 @@ static void monitor(void)
     {
       convertToUppercase();
       sendUART_r_n();
-      if ((input_mon_buff[0] == 'H') && (input_mon_buff[1] == 'E') && (input_mon_buff[2] == 'L') && (input_mon_buff[3] == 'P')) // enter HELP
+      if (mon_strcmp(input_mon_buff, "HELP"))
       {
         sendUART_help();
       }
-      else if ((input_mon_buff[0] == 'T') && (input_mon_buff[1] == 'E') && (input_mon_buff[2] == 'S') && (input_mon_buff[3] == 'T'))
+      else if (mon_strcmp(input_mon_buff, "TEST"))
       { // enter TEST
         monitorTest = TEST;
         sendUART_OK();
       }
-       else if ((input_mon_buff[0] == 'A') && (input_mon_buff[1] == 'D') && (input_mon_buff[2] == 'C'))
+       else if (mon_strcmp(input_mon_buff, "ADC"))
       { // enter ADC
         monitorTest = ADC;
         sendUART_OK();
       }
-      else if (mon_strcmp(input_mon_buff, (void *)"VOLTAGE"))
+      else if (mon_strcmp(input_mon_buff, "VOLTAGE"))
       {
         monitorTest = VOLTAGE;
         sendUART_OK();
@@ -200,24 +201,24 @@ static void monitor(void)
         monitorTest = VOLTAGE_AV;
         sendUART_OK();
       }
-      else if ((input_mon_buff[0] == 'O') && (input_mon_buff[1] == 'N'))
+      else if (mon_strcmp(input_mon_buff, "ON"))
       { // enter ON
         sendUART_OK();
         on_ps();
         osDelay(10);
       }
-      else if ((input_mon_buff[0] == 'O') && (input_mon_buff[1] == 'F') && (input_mon_buff[2] == 'F'))
+      else if (mon_strcmp(input_mon_buff, "OFF"))
       { // enter OFF
         sendUART_OK();
         off_ps();
       }
-      else if ((input_mon_buff[0] == 'R') && (input_mon_buff[1] == 'S') && (input_mon_buff[2] == 'T'))
+      else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 'S')&&(input_mon_buff[2] == 'T')&&(input_mon_buff[3] == 0))
       { // enter RST
         sendUART_OK();
         vTaskSuspendAll();
         while (1);
       }
-      else if ((input_mon_buff[0] == 'R'))
+      else if ((input_mon_buff[0] == 'R')&&(input_mon_buff[1] == 0))
       {
         sendUART_OK();
         HAL_NVIC_SystemReset();
