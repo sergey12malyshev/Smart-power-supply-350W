@@ -9,8 +9,20 @@
 uint32_t task10msCnt = 0;
 
 uint16_t voltage;
+uint16_t voltage_av;
 uint16_t current;
 
+/* Экспоненциальное бегущее среднее  filt = (A * filt + signal) >> k;*/
+uint16_t expRunningAverageFilter(uint16_t input)
+{
+  static uint32_t filt = 0;
+  const uint8_t k = 3;
+  const uint8_t a = 7; // a =  (2^k) – 1
+
+  filt = (a * filt + input) >> k;
+
+  return filt;
+}
 
 void voltageConvertion(uint16_t adc_1)
 {
@@ -48,6 +60,8 @@ void mainTask(void)
 
     voltageConvertion(getADC1value());
     currentConvertion(getADC2value());
+
+    voltage_av = expRunningAverageFilter(voltage);
 
     reset_WDT();
     vTaskDelayUntil(&xLastWakeTime, xFrequency);

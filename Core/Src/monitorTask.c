@@ -19,6 +19,7 @@ extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart1;
 
 extern uint16_t voltage;
+extern uint16_t voltage_av;
 extern uint16_t current;
 
 typedef enum
@@ -29,6 +30,7 @@ typedef enum
   TEST,
   ADC,
   VOLTAGE,
+  VOLTAGE_AV,
   CURRENT,
   ON,
   OFF,
@@ -59,7 +61,7 @@ INFO - read about project\r\n\
 static uint8_t symbol_term[] = ">";
 
 uint8_t input_mon[1] = {0};
-const uint8_t sizeBuff = 9;
+const uint8_t sizeBuff = 11;
 char input_mon_buff[sizeBuff] = {0};
 
 uint8_t str[50];
@@ -193,6 +195,11 @@ static void monitor(void)
         monitorTest = CURRENT;
         sendUART_OK();
       }
+      else if (mon_strcmp(input_mon_buff, "VOLTAGE AV"))
+      {
+        monitorTest = VOLTAGE_AV;
+        sendUART_OK();
+      }
       else if ((input_mon_buff[0] == 'O') && (input_mon_buff[1] == 'N'))
       { // enter ON
         sendUART_OK();
@@ -280,6 +287,11 @@ static void monitor_out_test(void)
       break;
     case VOLTAGE:
       sprintf((char *)str, "%d\r\n", voltage);
+      sendUART(str);
+      osDelay(100);
+      break;
+    case VOLTAGE_AV:
+      sprintf((char *)str, "%d\r\n", voltage_av);
       sendUART(str);
       osDelay(100);
       break;
