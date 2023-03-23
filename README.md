@@ -35,7 +35,7 @@ FreeRTOS Kernel V10.0.1
 Для Tera Term файл конфигурации: *utils/TERATERM.INI*
 Для PuTTY запустить **PuTTYstart.cmd**
 
-<img src= "https://github.com/sergey12malyshev/Smart-power-supply-350W/blob/develop/hardware/picturies/CLI.bmp" width=25% height=24%>
+<img src= "https://github.com/sergey12malyshev/Smart-power-supply-350W/blob/develop/hardware/picturies/Screen.png" width=45% height=45%>
 
 ### Репозиторий
 Применена модель ветвления git flow: http://danielkummer.github.io/git-flow-cheatsheet/
@@ -70,6 +70,10 @@ Semantic Versioning 2.0.0 https://semver.org/
 https://microtechnics.ru/stm32cubemx-bystryj-start-s-freertos-dlya-stm32/
 
 https://hackaday.com/2020/10/22/stm32-clones-the-good-the-bad-and-the-ugly/
+
+https://alexgyver.ru/lessons/code-optimisation/
+
+https://alexgyver.ru/lessons/filters/
 
 ## TODO ##
 - Поднять CAN;
