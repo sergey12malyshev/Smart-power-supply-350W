@@ -6,6 +6,7 @@
 void reset_WDT(void);
 void on_ps(void);
 void off_ps(void);
+void heartbeatLedToggle(void);
 bool PinPowerEnableState(void);
 bool checkStatePower(void);
 #endif /* __HARD_H */

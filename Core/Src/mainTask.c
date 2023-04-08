@@ -5,9 +5,6 @@
 #include "mainTask.h"
 #include "ADC.h"
 
-
-uint32_t task10msCnt = 0;
-
 uint16_t voltage;
 uint16_t voltage_av;
 uint16_t current;
@@ -51,9 +48,16 @@ void mainTask(void)
   const TickType_t xFrequency = 10 / portTICK_PERIOD_MS; // 10 ms period TASK
   xLastWakeTime = xTaskGetTickCount();
 
+  uint32_t task10msCnt, lastCnt = 0; 
+  uint16_t heartbeatPeriod_ms = 850;
   for (;;)
   {
     task10msCnt++;
+    if (task10msCnt - lastCnt >= heartbeatPeriod_ms / 10)
+    {
+      lastCnt = task10msCnt;
+      heartbeatLedToggle();
+    }
     
     setADC1value(adc1_convertion());
     setADC2value(adc2_convertion());
