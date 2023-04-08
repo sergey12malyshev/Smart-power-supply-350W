@@ -52,7 +52,7 @@ extern "C" {
 /* Semantic Versioning 2.0.0 */
 #define VERSION_MAJOR    0U
 #define VERSION_MINOR    2U
-#define VERSION_PATCH    0U
+#define VERSION_PATCH    1U
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
