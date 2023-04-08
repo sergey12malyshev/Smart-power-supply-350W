@@ -232,8 +232,12 @@ static void monitor(void)
       {
         sendUART_OK();
         sendUART("https://github.com/sergey12malyshev/Smart-power-supply-350W.git\r\n");
-        sendUART("FreeRTOS:");
+        sendUART("FreeRTOS: ");
         sendUART(tskKERNEL_VERSION_NUMBER);
+        sendUART_r_n();
+        sendUART("HAL: ");
+        sprintf((char *)str, "%d", HAL_GetHalVersion());
+        sendUART(str);
         sendUART_r_n();
       }
       else
