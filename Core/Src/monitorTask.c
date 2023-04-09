@@ -283,7 +283,7 @@ static void monitor(void)
         }
         else
         {
-          sendUART("overflow\r\n");
+          sendUART("\r\noverflow\r\n");
         }
       }
     }
