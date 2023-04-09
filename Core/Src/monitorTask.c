@@ -62,10 +62,10 @@ INFO - read about project\r\n\
 static uint8_t symbol_term[] = ">";
 
 uint8_t input_mon[1] = {0};
-const uint8_t sizeBuff = 11;
+const uint8_t sizeBuff = 12;
 char input_mon_buff[sizeBuff] = {0};
 
-uint8_t str[50];
+static uint8_t str[50];
 
 COMAND monitorTest = NONE; // global flag TEST
 
@@ -100,8 +100,6 @@ static void sendUART_symbolTerm(void)
 
 static void sendSNversion(void)
 {
-  uint8_t str[14];
-
   sprintf((char *)str, "Version: %d", VERSION_MAJOR);
   sendUART(str);
   sendUART(".");
@@ -271,9 +269,21 @@ static void monitor(void)
       }
       else
       {
-        if (rec_len <= sizeBuff)
+        if (rec_len < sizeBuff)
         {
-          input_mon_buff[rec_len++] = input_mon[0]; // load char do string
+          if((input_mon[0] > 0) &&  (input_mon[0] <= 127))// ASCIi check
+          {
+            input_mon_buff[rec_len++] = input_mon[0]; // load char do string
+          }
+          else
+          {
+            sendUART("\r\nswitch keyboard language\r\n");
+          }
+          
+        }
+        else
+        {
+          sendUART("overflow\r\n");
         }
       }
     }
@@ -320,7 +330,7 @@ static void monitor_out_test(void)
       sprintf((char *)str, "%d.%d\t", current / 1000, current % 1000);
       sendUART(str);
       power = voltage * current;
-      sprintf((char *)str, "%d.%d\r\n", power / 100000, (power / 10000) % 10);
+      sprintf((char *)str, "%u.%u\r\n", power / 100000, (power / 10000) % 10);
       sendUART(str);
       osDelay(100);
       break;

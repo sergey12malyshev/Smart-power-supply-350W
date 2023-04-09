@@ -48,7 +48,7 @@ void mainTask(void)
   const TickType_t xFrequency = 10 / portTICK_PERIOD_MS; // 10 ms period TASK
   xLastWakeTime = xTaskGetTickCount();
 
-  uint32_t task10msCnt, lastCnt = 0; 
+  uint32_t task10msCnt = 0, lastCnt = 0; 
   uint16_t heartbeatPeriod_ms = 850;
   for (;;)
   {
