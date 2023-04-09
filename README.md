@@ -14,9 +14,11 @@ Software and hardware design of a switching power supply with a digital control 
 
 Используемые библиотеки: HAL ST
 ### Статический анализатор кода
-Cppcheck 2.10
+Cppcheck 2.10 https://cppcheck.sourceforge.io/
 
 Запустить RunStaticAnalysisCODE.cmd
+
+Возможен вывод результата анализа в файл
 ### Настройка периферии
 STM32 CubeMX
 
