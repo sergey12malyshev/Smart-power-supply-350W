@@ -4,5 +4,9 @@ rem для работы необходимо установить https://cppche
 rem Гайд: https://habr.com/ru/articles/210256/
 @echo on
 
-cppcheck -q -j4 --enable=all --inconclusive  ./Core
+rem вывод результата в консоль
+cppcheck -q -j4 --enable=all --inconclusive ./Core 
+rem вывод результата в файл
+rem cppcheck -q -j4 --enable=all --inconclusive --output-file=checkReport.txt  ./Core
+
 PAUSE
