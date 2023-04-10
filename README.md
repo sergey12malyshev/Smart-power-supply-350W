@@ -81,6 +81,8 @@ https://alexgyver.ru/lessons/code-optimisation/
 
 https://alexgyver.ru/lessons/filters/
 
+https://itnan.ru/post.php?c=1&p=267573 - про RTOS
+
 ## TODO ##
 - Поднять CAN;
 
