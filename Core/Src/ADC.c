@@ -1,6 +1,7 @@
 #include "main.h"
 #include "hardware.h"
 #include "mainTask.h"
+#include "monitorTask.h"
 
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
@@ -9,6 +10,7 @@ volatile uint16_t adc1_value;
 volatile uint16_t adc2_value;
 
 uint16_t zero_ad712;
+static const uint8_t timoutAdc = 20u;
 
 /* ADC API start */
 void setADC1value(uint16_t adc1_result)
@@ -53,10 +55,18 @@ void calibr_zero_AD712(void)
 
 /* Регулярные каналы, преобразования АЦП запускаем программно */
 uint16_t adc1_convertion(void)
-{ // voltage in 0.01 V
+{ 
+  uint16_t adc_1 = 0; // voltage in 0.01 V
+  
   HAL_ADC_Start(&hadc1);
-  HAL_ADC_PollForConversion(&hadc1, 100);
-  uint16_t adc_1 = (uint32_t)HAL_ADC_GetValue(&hadc1);
+  if (HAL_ADC_PollForConversion(&hadc1, timoutAdc) == HAL_OK)
+  {
+    adc_1 = (uint32_t)HAL_ADC_GetValue(&hadc1);
+  }
+  else
+  {
+    sendUART("ADC error");
+  }
 
   HAL_ADC_Stop(&hadc1);
 
@@ -66,7 +76,7 @@ uint16_t adc1_convertion(void)
 uint16_t adc2_convertion(void)
 {
   HAL_ADC_Start(&hadc2);
-  HAL_ADC_PollForConversion(&hadc2, 100);
+  HAL_ADC_PollForConversion(&hadc2, timoutAdc);
   uint16_t adc_2 = (uint32_t)HAL_ADC_GetValue(&hadc2);
 
   HAL_ADC_Stop(&hadc2);

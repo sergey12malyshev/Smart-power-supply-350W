@@ -68,7 +68,7 @@ static void overCurrentControl(void)
 }
 
 /*
-Задача безопасности и контроля
+* Задача безопасности и контроля
 */
 void checkTask(void)
 {

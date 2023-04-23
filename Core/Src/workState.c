@@ -6,9 +6,9 @@ static STATE workState = SWITCH_OFF_STATE;
 
 void debugState(STATE state)
 {
-    if (state == SWITCH_OFF_STATE)     sendUART("SWITCH_OFF_STATE\r\n");
-    if (state == SWITCH_ON_STATE)      sendUART("SWITCH_ON_STATE\r\n");
-    if (state == ALARM_STATE)          sendUART("ALARM_STATE\r\n");
+  if (state == SWITCH_OFF_STATE)     sendUART("SWITCH_OFF_STATE\r\n");
+  if (state == SWITCH_ON_STATE)      sendUART("SWITCH_ON_STATE\r\n");
+  if (state == ALARM_STATE)          sendUART("ALARM_STATE\r\n");
 }
 
 void setState(STATE state)
